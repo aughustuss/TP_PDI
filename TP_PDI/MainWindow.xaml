@@ -5,40 +5,52 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:TP_PDI"
         mc:Ignorable="d"
-        Title="Início" Height="450" Width="800">
+        Title="Início" Height="573" Width="964">
     <Grid>
-        <Grid>
-            <Button x:Name="SubmitImage" Content="Clique para submeter uma imagem" HorizontalAlignment="Left" Margin="10,235,0,0" VerticalAlignment="Top" Height="29" Width="220" Click="SubmetImage"/>
+        <Grid VerticalAlignment="Top" HorizontalAlignment="Left" Height="260" Width="220" Margin="10, 10, 0, 0">
+            <Button x:Name="SubmitImageButton" Content="Clique para submeter uma imagem" HorizontalAlignment="Left" VerticalAlignment="Bottom" Height="30" Width="220" Click="SubmitImage"/>
             <Border Name="brdSiteLogo" 
                 BorderThickness="2"
                 BorderBrush="#e1e3e1"
                 VerticalAlignment="Top"
-                HorizontalAlignment="Left"
-                Margin="10,10,0,0"
-                Height="220" 
-                Width="220">
+                Height="220">
                 <Image            
-                    HorizontalAlignment="Stretch" 
+                    HorizontalAlignment="Stretch"
+                    MaxHeight="220"
                     VerticalAlignment="Stretch" 
                     Stretch="Fill"
                     x:Name="imagePicture"/>
             </Border>
         </Grid>
-        <Grid>
-            <Button IsEnabled="False" Content="Imagem convertida em níveis de cinza" HorizontalAlignment="Left" Margin="250,235,0,0" VerticalAlignment="Top" Height="29" Width="220" Click="SubmetImage"/>
+        <Grid VerticalAlignment="Top" HorizontalAlignment="Left" Height="260" Width="220" Margin="250, 10, 0, 0">
+            <Button IsEnabled="False" Content="Imagem convertida em níveis de cinza" HorizontalAlignment="Center" VerticalAlignment="Bottom" Height="30" Width="220"/>
             <Border
                 BorderThickness="2"
                 BorderBrush="#e1e3e1"
+                Height="220"
                 VerticalAlignment="Top"
-                HorizontalAlignment="Left"
-                Margin="250, 10,0,0"
-                Height="220" 
-                Width="220">
-                <Image            
+                >
+                <Image      
+                    MaxHeight="220"
                     HorizontalAlignment="Stretch" 
                     VerticalAlignment="Stretch" 
                     Stretch="Fill"
                     x:Name="grayScaleImagePicture"/>
+            </Border>
+        </Grid>
+        <Grid Margin="10, 10,10,10" Height="260" Width="220" VerticalAlignment="Top" HorizontalAlignment="Right">
+            <Button IsEnabled="False" Content="Imagem resultante" Height="30" VerticalAlignment="Bottom"/>
+            <Border
+                BorderThickness="2"
+                BorderBrush="#e1e3e1"
+                VerticalAlignment="Top"
+                Height="220" >
+                <Image            
+                    MaxHeight="220"
+                    HorizontalAlignment="Stretch" 
+                    VerticalAlignment="Stretch" 
+                    Stretch="Fill"
+                    x:Name="resultImage"/>
             </Border>
         </Grid>
     </Grid>

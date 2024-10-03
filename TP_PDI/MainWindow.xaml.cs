@@ -20,7 +20,7 @@ namespace TP_PDI
             InitializeComponent();
         }
 
-        private void SubmetImage(object sender, RoutedEventArgs e)
+        private void SubmitImage(object sender, RoutedEventArgs e)
         {
             OpenFileDialog dialog = new()
             {
