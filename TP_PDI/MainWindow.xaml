@@ -5,8 +5,22 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:TP_PDI"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="Início" Height="450" Width="800">
     <Grid>
-
+        <Button x:Name="SubmitImage" Content="Clique para submeter uma imagem" HorizontalAlignment="Left" Margin="10,235,0,0" VerticalAlignment="Top" Height="29" Width="220" Click="SubmetImage"/>
+        <Border Name="brdSiteLogo" 
+            BorderThickness="2"
+            BorderBrush="#e1e3e1"
+            VerticalAlignment="Top"
+            HorizontalAlignment="Left"
+            Margin="10,10,0,0"
+            Height="220" 
+            Width="220">
+            <Image            
+                HorizontalAlignment="Stretch" 
+                VerticalAlignment="Stretch" 
+                Stretch="Fill"
+                x:Name="imagePicture"/>
+        </Border>
     </Grid>
 </Window>
