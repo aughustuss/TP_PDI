@@ -22,20 +22,45 @@ namespace TP_PDI
 
         private void SubmetImage(object sender, RoutedEventArgs e)
         {
-            OpenFileDialog openDialog = new();
-            openDialog.Filter = "Image files|*.jpg;*.png";
-            openDialog.FilterIndex = 1;
-            if (openDialog.ShowDialog() == true)
-                imagePicture.Source = new BitmapImage(new Uri(openDialog.FileName));
+            OpenFileDialog dialog = new()
+            {
+                Filter = "Image files|*.jpg;*.png",
+                FilterIndex = 1,
+            };
+            if (dialog.ShowDialog() == true)
+            {
+                BitmapImage bitmapImage = new BitmapImage(new Uri(dialog.FileName));
+                imagePicture.Source = bitmapImage;
 
-             //ConvertToGrayScale(imagePicture.Source);
+                BitmapSource bitmapSource = ConvertToGrayScale(bitmapImage);
+                grayScaleImagePicture.Source = bitmapSource;
+            }
         }
 
-/*
-        private void ConvertToGrayScale(BitmapImage image)
+        private BitmapSource ConvertToGrayScale(BitmapImage image)
         {
-            var grayImage = (BitmapImage)imagePicture.Source;
-            Bitmap bitmap = (Bitmap)image.Clone(); 
-        }*/
+            WriteableBitmap writeableBitmap = new WriteableBitmap(image);
+
+            int width = writeableBitmap.PixelWidth;
+            int height = writeableBitmap.PixelHeight;
+            int[] pixels = new int[width * height];
+            writeableBitmap.CopyPixels(pixels, width * 4, 0);
+
+            for (int i = 0; i < pixels.Length; i++)
+            {
+                byte a = (byte)((pixels[i] >> 24) & 0xff); // Alpha
+                byte r = (byte)((pixels[i] >> 16) & 0xff); // Red
+                byte g = (byte)((pixels[i] >> 8) & 0xff);  // Green
+                byte b = (byte)(pixels[i] & 0xff);         // Blue
+
+                byte gray = (byte)(0.299 * r + 0.587 * g + 0.114 * b);
+
+                pixels[i] = (a << 24) | (gray << 16) | (gray << 8) | gray;
+            }
+
+            WriteableBitmap grayWriteableBitmap = new WriteableBitmap(width, height, writeableBitmap.DpiX, writeableBitmap.DpiY, PixelFormats.Pbgra32, null);
+            grayWriteableBitmap.WritePixels(new Int32Rect(0, 0, width, height), pixels, width * 4, 0);
+            return grayWriteableBitmap;
+        }
     }
 }

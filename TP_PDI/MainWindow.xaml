@@ -7,20 +7,39 @@
         mc:Ignorable="d"
         Title="Início" Height="450" Width="800">
     <Grid>
-        <Button x:Name="SubmitImage" Content="Clique para submeter uma imagem" HorizontalAlignment="Left" Margin="10,235,0,0" VerticalAlignment="Top" Height="29" Width="220" Click="SubmetImage"/>
-        <Border Name="brdSiteLogo" 
-            BorderThickness="2"
-            BorderBrush="#e1e3e1"
-            VerticalAlignment="Top"
-            HorizontalAlignment="Left"
-            Margin="10,10,0,0"
-            Height="220" 
-            Width="220">
-            <Image            
-                HorizontalAlignment="Stretch" 
-                VerticalAlignment="Stretch" 
-                Stretch="Fill"
-                x:Name="imagePicture"/>
-        </Border>
+        <Grid>
+            <Button x:Name="SubmitImage" Content="Clique para submeter uma imagem" HorizontalAlignment="Left" Margin="10,235,0,0" VerticalAlignment="Top" Height="29" Width="220" Click="SubmetImage"/>
+            <Border Name="brdSiteLogo" 
+                BorderThickness="2"
+                BorderBrush="#e1e3e1"
+                VerticalAlignment="Top"
+                HorizontalAlignment="Left"
+                Margin="10,10,0,0"
+                Height="220" 
+                Width="220">
+                <Image            
+                    HorizontalAlignment="Stretch" 
+                    VerticalAlignment="Stretch" 
+                    Stretch="Fill"
+                    x:Name="imagePicture"/>
+            </Border>
+        </Grid>
+        <Grid>
+            <Button IsEnabled="False" Content="Imagem convertida em níveis de cinza" HorizontalAlignment="Left" Margin="250,235,0,0" VerticalAlignment="Top" Height="29" Width="220" Click="SubmetImage"/>
+            <Border
+                BorderThickness="2"
+                BorderBrush="#e1e3e1"
+                VerticalAlignment="Top"
+                HorizontalAlignment="Left"
+                Margin="250, 10,0,0"
+                Height="220" 
+                Width="220">
+                <Image            
+                    HorizontalAlignment="Stretch" 
+                    VerticalAlignment="Stretch" 
+                    Stretch="Fill"
+                    x:Name="grayScaleImagePicture"/>
+            </Border>
+        </Grid>
     </Grid>
 </Window>
