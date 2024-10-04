@@ -46,9 +46,7 @@
                 VerticalAlignment="Top"
                 Height="220" >
                 <Image            
-                    MaxHeight="220"
-                    HorizontalAlignment="Stretch" 
-                    VerticalAlignment="Stretch" 
+                    MaxHeight="220" 
                     Stretch="Fill"
                     x:Name="resultImage"/>
             </Border>
