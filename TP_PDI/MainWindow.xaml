@@ -1,4 +1,4 @@
-﻿<Window x:Class="TP_PDI.MainWindow"
+﻿<Window x:Class="TP_PDI.MainWindow" 
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -7,6 +7,7 @@
         mc:Ignorable="d"
         Title="Início" Height="573" Width="964">
     <Grid>
+        <!-- Primeira imagem submetida -->
         <Grid VerticalAlignment="Top" HorizontalAlignment="Left" Height="260" Width="220" Margin="10, 10, 0, 0">
             <Button x:Name="SubmitImageButton" Content="Clique para submeter uma imagem" HorizontalAlignment="Left" VerticalAlignment="Bottom" Height="30" Width="220" Click="SubmitImage"/>
             <Border Name="brdSiteLogo" 
@@ -22,14 +23,15 @@
                     x:Name="imagePicture"/>
             </Border>
         </Grid>
+
+        <!-- Imagem convertida em tons de cinza -->
         <Grid VerticalAlignment="Top" HorizontalAlignment="Left" Height="260" Width="220" Margin="250, 10, 0, 0">
             <Button IsEnabled="False" Content="Imagem convertida em níveis de cinza" HorizontalAlignment="Center" VerticalAlignment="Bottom" Height="30" Width="220"/>
             <Border
                 BorderThickness="2"
                 BorderBrush="#e1e3e1"
                 Height="220"
-                VerticalAlignment="Top"
-                >
+                VerticalAlignment="Top">
                 <Image      
                     MaxHeight="220"
                     HorizontalAlignment="Stretch" 
@@ -38,17 +40,26 @@
                     x:Name="grayScaleImagePicture"/>
             </Border>
         </Grid>
+
+        <!-- Imagem resultante -->
         <Grid Margin="10, 10,10,10" Height="260" Width="220" VerticalAlignment="Top" HorizontalAlignment="Right">
             <Button IsEnabled="False" Content="Imagem resultante" Height="30" VerticalAlignment="Bottom"/>
             <Border
                 BorderThickness="2"
                 BorderBrush="#e1e3e1"
                 VerticalAlignment="Top"
-                Height="220" >
+                Height="220">
                 <Image            
                     MaxHeight="220" 
                     Stretch="Fill"
                     x:Name="resultImage"/>
+            </Border>
+        </Grid>
+
+        <!-- Canvas para o histograma -->
+        <Grid VerticalAlignment="Bottom" HorizontalAlignment="Left" Margin="10, 300, 10, 10">
+            <Border BorderThickness="1" BorderBrush="Black">
+                <Canvas x:Name="histogramCanvas" Width="800" Height="200" />
             </Border>
         </Grid>
     </Grid>

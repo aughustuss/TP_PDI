@@ -1,5 +1,4 @@
 ﻿using Microsoft.Win32;
-using System.Drawing;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
@@ -10,6 +9,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Linq;
 
 namespace TP_PDI
 {
@@ -34,6 +34,9 @@ namespace TP_PDI
 
                 BitmapSource bitmapSource = ConvertToGrayScale(bitmapImage);
                 grayScaleImagePicture.Source = bitmapSource;
+
+                int[] histogram = CalculateHistogram(bitmapImage);
+                DrawHistogram(histogram);
 
                 BitmapSource negativeBitmapSource = ConvertToNegative(bitmapSource);
                 // resultImage.Source = negativeBitmapSource;
@@ -482,5 +485,56 @@ namespace TP_PDI
 
             return maxBitmap;
         }
+
+        private int[] CalculateHistogram(BitmapSource bitmapSource)
+        {
+            int[] histogram = new int[256];
+
+            WriteableBitmap writeableBitmap = new WriteableBitmap(bitmapSource);
+            int width = writeableBitmap.PixelWidth;
+            int height = writeableBitmap.PixelHeight;
+            byte[] pixels = new byte[width * height * 4];
+
+            writeableBitmap.CopyPixels(pixels, width * 4, 0);
+
+            for (int i = 0; i < pixels.Length; i += 4)
+            {
+                byte gray = pixels[i]; 
+                histogram[gray]++;
+            }
+
+            return histogram;
+        }
+        private void DrawHistogram(int[] histogram)
+        {
+            
+            histogramCanvas.Children.Clear();
+
+            
+            int max = histogram.Max();
+
+           
+            double scale = 200.0 / max;
+
+            for (int i = 0; i < histogram.Length; i++)
+            {
+                
+                Rectangle bar = new Rectangle
+                {
+                    Width = 2,
+                    Height = histogram[i] * scale,
+                    Fill = System.Windows.Media.Brushes.Black
+                };
+
+                
+                Canvas.SetLeft(bar, i * 3); 
+                Canvas.SetBottom(bar, 0);
+
+                
+                histogramCanvas.Children.Add(bar);
+            }
+        }
+
+
     }
 }
