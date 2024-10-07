@@ -1,4 +1,4 @@
-﻿<Window x:Class="TP_PDI.MainWindow"
+﻿<Window x:Class="TP_PDI.MainWindow" 
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -31,8 +31,8 @@
                 BorderBrush="#e1e3e1"
                 VerticalAlignment="Top"
                 Height="220" >
-                <Image            
-                    VerticalAlignment="Stretch"
+                <Image      
+                    VerticalAlignment="Stretch" 
                     HorizontalAlignment="Stretch"
                     Stretch="Fill"
                     Height="220" 
@@ -78,6 +78,12 @@
 
         <Grid Height="30" Width="220" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="10" >
             <Button IsEnabled="True" Content="Enviar imagem" Click="ProcessImage" />
+        </Grid>
+
+        <Grid VerticalAlignment="Bottom" HorizontalAlignment="Left" Margin="10, 300, 10, 10">
+            <Border BorderThickness="1" BorderBrush="Black">
+                <Canvas x:Name="histogramCanvas" Margin="0,162,707,0" />
+            </Border>
         </Grid>
     </Grid>
 </Window>
