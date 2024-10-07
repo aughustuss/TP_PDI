@@ -16,29 +16,15 @@
                 Height="220">
                 <Image            
                     HorizontalAlignment="Stretch"
-                    MaxHeight="220"
                     VerticalAlignment="Stretch" 
-                    Stretch="Fill"
+                    Stretch="Uniform"
+                    Height="220"
+                    Width="220"
                     x:Name="imagePicture"/>
             </Border>
         </Grid>
-        <Grid VerticalAlignment="Top" HorizontalAlignment="Left" Height="260" Width="220" Margin="250, 10, 0, 0">
-            <Button IsEnabled="False" Content="Imagem convertida em níveis de cinza" HorizontalAlignment="Center" VerticalAlignment="Bottom" Height="30" Width="220"/>
-            <Border
-                BorderThickness="2"
-                BorderBrush="#e1e3e1"
-                Height="220"
-                VerticalAlignment="Top"
-                >
-                <Image      
-                    MaxHeight="220"
-                    HorizontalAlignment="Stretch" 
-                    VerticalAlignment="Stretch" 
-                    Stretch="Fill"
-                    x:Name="grayScaleImagePicture"/>
-            </Border>
-        </Grid>
-        <Grid Margin="10, 10,10,10" Height="260" Width="220" VerticalAlignment="Top" HorizontalAlignment="Right">
+
+        <Grid Margin="0,10,10,0" Height="260" VerticalAlignment="Top" HorizontalAlignment="Right" Width="220">
             <Button IsEnabled="False" Content="Imagem resultante" Height="30" VerticalAlignment="Bottom"/>
             <Border
                 BorderThickness="2"
@@ -46,10 +32,52 @@
                 VerticalAlignment="Top"
                 Height="220" >
                 <Image            
-                    MaxHeight="220" 
+                    VerticalAlignment="Stretch"
+                    HorizontalAlignment="Stretch"
                     Stretch="Fill"
+                    Height="220" 
+                    Width="220"
                     x:Name="resultImage"/>
             </Border>
+        </Grid>
+        <Grid x:Name="RotatedImage" Visibility="Hidden" Margin="10, 10,240,10" Height="260" Width="220" VerticalAlignment="Top" HorizontalAlignment="Right">
+            <Button IsEnabled="False" Content="Imagem resultante" Height="30" VerticalAlignment="Bottom"/>
+            <Border
+                BorderThickness="2"
+                BorderBrush="#e1e3e1"
+                VerticalAlignment="Top"
+                Height="220" >
+                <Image            
+                    VerticalAlignment="Stretch"
+                    HorizontalAlignment="Stretch"
+                    Stretch="Fill"
+                    Height="220" 
+                    Width="220"
+                    x:Name="rotationImageResult"
+                    />
+            </Border>
+        </Grid>
+
+        <Grid Height="50" Width="220" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="10,300, 10, 10">
+            <TextBlock Text="Selecione uma operação" />
+            <ComboBox x:Name="FilterOptions" VerticalAlignment="Bottom" Height="30" SelectionChanged="HandleProcessChange"  />
+        </Grid>
+
+        <Grid x:Name="MaskInput" Visibility="Hidden" Height="50" Width="220" VerticalAlignment="Bottom" HorizontalAlignment="Left" Margin="10, 0, 0, 130">
+            <TextBlock Text="Informe o tamanho da máscara (Ex: 5x5)" />
+            <TextBox Height="30" VerticalAlignment="Bottom" />
+        </Grid>
+        <Grid x:Name="ExpansionOrCompressionInput" Visibility="Hidden" Height="50" Width="220" VerticalAlignment="Bottom" HorizontalAlignment="Left" Margin="10, 0, 0, 130">
+            <TextBlock Text="Informe os valores para A e B respectivamente (Ex: 2, 5)" />
+            <TextBox Height="30" VerticalAlignment="Bottom" />
+        </Grid>
+        <Grid x:Name="DegreesInput" Visibility="Hidden" Height="50" Width="220" VerticalAlignment="Bottom" HorizontalAlignment="Left" Margin="10, 0, 0, 130">
+            <TextBlock Text="Selecion o grau em que deseja girar a imagem" />
+            <ComboBox x:Name="DegreesOptions" Height="30" VerticalAlignment="Bottom"  />
+        </Grid>
+
+        <Grid Height="30" Width="220" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="10" >
+            <Button IsEnabled="True" Content="Enviar imagem" Click="ProcessImage" />
         </Grid>
     </Grid>
 </Window>
