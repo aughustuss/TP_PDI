@@ -11,6 +11,10 @@ using System.Windows.Shapes;
 using TP_PDI.Enuns;
 using TP_PDI.Entities;
 using System.Windows.Controls;
+using SixLabors.ImageSharp.PixelFormats;
+using System.IO;
+using TP_PDI.Utils;
+using System.ComponentModel;
 
 namespace TP_PDI
 {
@@ -19,42 +23,52 @@ namespace TP_PDI
         private readonly Dictionary<EProcess, Func<BitmapSource>> _process;
         private readonly Dictionary<EProcess, Func<int, List<TransformedBitmap>>> _degreesProcesses;
         private readonly Dictionary<EProcess, Func<EProcess, TransformedBitmap>> _mirroringProcesses;
+        private readonly Dictionary<EProcess, Func<string, BitmapSource>> _processWithMask;
         private readonly ImageProcessor _image;
-        private string
-            _maskValue = "",
-            _expansionOrCompressionValue = "";
 
         public MainWindow()
         {
             InitializeComponent();
 
-            FilterOptions.ItemsSource = Enum.GetValues(typeof(EProcess)).Cast<EProcess>();
+            _image = new ImageProcessor();
+
+            FilterOptions.ItemsSource = Enum
+                .GetValues(typeof(EProcess)).Cast<EProcess>()
+                .Select(ep => new { Value = ep, Description = HelpingMethods.GetEnumDescription(ep) });
+
             DegreesOptions.ItemsSource = new List<int>()
             {
                 90,
                 180
             };
 
-            _image = new ImageProcessor();
             _process = new Dictionary<EProcess, Func<BitmapSource>>
             {
-                { EProcess.Negative, _image.ConvertToNegative },
-                { EProcess.Expansion, _image.MeanFilter },
-                { EProcess.Median, _image.MedianFilter },
-                { EProcess.Maximun, _image.MaxFilter },
-                { EProcess.Minimun, _image.MinFilter },
+                { EProcess.Negative, _image.NegativeFilter },
                 { EProcess.Logarithm, _image.LogarithmicFilter },
-                { EProcess.InverseLogarithm, _image.InverseLogaritmFilter }
+                { EProcess.InverseLogarithm, _image.InverseLogaritmFilter },
+                { EProcess.Laplacian, _image.LaplacianFilter },
+                { EProcess.HighBoost, _image.HighBoostFilter },
             };
+
             _degreesProcesses = new Dictionary<EProcess, Func<int, List<TransformedBitmap>>>
             {
                 { EProcess.NinetyDegrees, _image.DegreesFilter },
                 { EProcess.OneHundredEightyDegrees, _image.DegreesFilter }
             };
+
             _mirroringProcesses = new Dictionary<EProcess, Func<EProcess, TransformedBitmap>>
             {
                 { EProcess.Horizontal, _image.MirroringFilter },
                 { EProcess.Vertical, _image.MirroringFilter },
+            };
+
+            _processWithMask = new Dictionary<EProcess, Func<string, BitmapSource>>
+            {
+                { EProcess.Expansion, _image.MeanFilter },
+                { EProcess.Median, _image.MedianFilter },
+                { EProcess.Maximun, _image.MaxFilter },
+                { EProcess.Minimun, _image.MinFilter },
             };
         }
 
@@ -69,30 +83,39 @@ namespace TP_PDI
             {
                 _image.BitmapImage = new(new Uri(dialog.FileName));
                 imagePicture.Source = _image.BitmapImage;
-                _image.GetGrayScale(dialog);
+                _image.GrayScaleImage = HelpingMethods.GetGrayScale(dialog);
             }
         }
 
         private void ProcessImage(object sender, RoutedEventArgs e)
         {
-            if(FilterOptions.SelectedItem is EProcess selectedProcess)
+            if(FilterOptions.SelectedValue is EProcess selectedProcess)
             {
-                if(_process.TryGetValue(selectedProcess, out var process))
+                if (_process.TryGetValue(selectedProcess, out var process))
                     resultImage.Source = process();
-                else if(_degreesProcesses.TryGetValue(selectedProcess, out var degreesProcess))
+                else if (_mirroringProcesses.TryGetValue(selectedProcess, out var mirroringProcess))
+                    resultImage.Source = mirroringProcess(selectedProcess);
+                else if (_processWithMask.TryGetValue(selectedProcess, out var processWithMask))
+                    resultImage.Source = processWithMask(MaskValues.Text);
+                else if (_degreesProcesses.TryGetValue(selectedProcess, out var degreesProcess))
                 {
-                    var transormedBitmaps = degreesProcess((int)DegreesOptions.SelectedItem);
+                    int degrees = 0;
+                    if (selectedProcess == EProcess.NinetyDegrees)
+                        degrees = 90;
+                    else if(selectedProcess == EProcess.OneHundredEightyDegrees)
+                        degrees = 180;
+
+                    var transormedBitmaps = degreesProcess(degrees);
                     resultImage.Source = transormedBitmaps[0];
                     rotationImageResult.Source = transormedBitmaps[1];
                     RotatedImage.Visibility = Visibility.Visible;
-                } else if(_mirroringProcesses.TryGetValue(selectedProcess, out var mirroringProcess))
-                    resultImage.Source = mirroringProcess(selectedProcess);
+                }
             }
         }
 
         private void HandleProcessChange(object sender, RoutedEventArgs e)
         {
-            if(FilterOptions.SelectedItem is EProcess process)
+            if(FilterOptions.SelectedValue is EProcess process)
             {
                 switch (process)
                 {
@@ -101,6 +124,7 @@ namespace TP_PDI
                     case EProcess.Maximun:
                     case EProcess.Mode:
                     case EProcess.Average:
+                    case EProcess.Laplacian:
                         MaskInput.Visibility = Visibility.Visible;
                         ExpansionOrCompressionInput.Visibility = Visibility.Hidden;
                         DegreesInput.Visibility = Visibility.Hidden;
@@ -125,11 +149,16 @@ namespace TP_PDI
             }
         }
 
+        private void HandleTextChange(object sender, RoutedEventArgs e)
+        {
+            
+        }
+
         private int[] CalculateHistogram(BitmapSource bitmapSource)
         {
             int[] histogram = new int[256];
 
-            WriteableBitmap writeableBitmap = new WriteableBitmap(bitmapSource);
+            WriteableBitmap writeableBitmap = new(bitmapSource);
             int width = writeableBitmap.PixelWidth;
             int height = writeableBitmap.PixelHeight;
             byte[] pixels = new byte[width * height * 4];
@@ -146,18 +175,14 @@ namespace TP_PDI
         }
         private void DrawHistogram(int[] histogram)
         {
-            
             histogramCanvas.Children.Clear();
 
-            
             int max = histogram.Max();
 
-           
             double scale = 200.0 / max;
 
             for (int i = 0; i < histogram.Length; i++)
             {
-                
                 Rectangle bar = new Rectangle
                 {
                     Width = 2,
@@ -165,15 +190,12 @@ namespace TP_PDI
                     Fill = System.Windows.Media.Brushes.Black
                 };
 
-                
                 Canvas.SetLeft(bar, i * 3); 
                 Canvas.SetBottom(bar, 0);
 
-                
                 histogramCanvas.Children.Add(bar);
             }
         }
-
 
     }
 }

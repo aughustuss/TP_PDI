@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:TP_PDI"
         mc:Ignorable="d"
-        Title="Início" Height="573" Width="964">
+        Title="Início" Height="701" Width="924">
     <Grid>
         <Grid VerticalAlignment="Top" HorizontalAlignment="Left" Height="260" Width="220" Margin="10, 10, 0, 0">
             <Button x:Name="SubmitImageButton" Content="Clique para submeter uma imagem" HorizontalAlignment="Left" VerticalAlignment="Bottom" Height="30" Width="220" Click="SubmitImage"/>
@@ -60,27 +60,27 @@
 
         <Grid Height="50" Width="220" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="10,300, 10, 10">
             <TextBlock Text="Selecione uma operação" />
-            <ComboBox x:Name="FilterOptions" VerticalAlignment="Bottom" Height="30" SelectionChanged="HandleProcessChange"  />
+            <ComboBox x:Name="FilterOptions" VerticalAlignment="Bottom" Height="30" SelectionChanged="HandleProcessChange" DisplayMemberPath="Description" SelectedValuePath="Value" />
         </Grid>
 
-        <Grid x:Name="MaskInput" Visibility="Hidden" Height="50" Width="220" VerticalAlignment="Bottom" HorizontalAlignment="Left" Margin="10, 0, 0, 130">
+        <Grid x:Name="MaskInput" Visibility="Hidden" Height="50" Width="220" VerticalAlignment="Bottom" HorizontalAlignment="Left" Margin="10,0,0,254">
             <TextBlock Text="Informe o tamanho da máscara (Ex: 5x5)" />
-            <TextBox Height="30" VerticalAlignment="Bottom" />
+            <TextBox Height="30" VerticalAlignment="Bottom" x:Name="MaskValues" />
         </Grid>
-        <Grid x:Name="ExpansionOrCompressionInput" Visibility="Hidden" Height="50" Width="220" VerticalAlignment="Bottom" HorizontalAlignment="Left" Margin="10, 0, 0, 130">
+        <Grid x:Name="ExpansionOrCompressionInput" Visibility="Hidden" Height="50" Width="220" VerticalAlignment="Bottom" HorizontalAlignment="Left" Margin="10,0,0,254">
             <TextBlock Text="Informe os valores para A e B respectivamente (Ex: 2, 5)" />
             <TextBox Height="30" VerticalAlignment="Bottom" />
         </Grid>
-        <Grid x:Name="DegreesInput" Visibility="Hidden" Height="50" Width="220" VerticalAlignment="Bottom" HorizontalAlignment="Left" Margin="10, 0, 0, 130">
-            <TextBlock Text="Selecion o grau em que deseja girar a imagem" />
+        <Grid x:Name="DegreesInput" Visibility="Hidden" Height="50" Width="220" VerticalAlignment="Bottom" HorizontalAlignment="Left" Margin="10,0,0,254">
+            <TextBlock Text="Selecion o grau parar girar a imagem" />
             <ComboBox x:Name="DegreesOptions" Height="30" VerticalAlignment="Bottom"  />
         </Grid>
 
         <Grid Height="30" Width="220" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="10" >
-            <Button IsEnabled="True" Content="Enviar imagem" Click="ProcessImage" />
+            <Button x:Name="SubmitProcess" IsEnabled="True" Content="Enviar imagem" Click="ProcessImage" />
         </Grid>
 
-        <Grid VerticalAlignment="Bottom" HorizontalAlignment="Left" Margin="10, 300, 10, 10">
+        <Grid VerticalAlignment="Bottom" HorizontalAlignment="Left" Margin="10,0,0,10" Height="120" Width="662">
             <Border BorderThickness="1" BorderBrush="Black">
                 <Canvas x:Name="histogramCanvas" Margin="0,162,707,0" />
             </Border>
