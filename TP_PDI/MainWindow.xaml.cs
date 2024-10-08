@@ -293,36 +293,33 @@ namespace TP_PDI
 
         private static List<Rectangle> GenerateHistogram(BitmapSource grayScaleImage, double canvasWidth, double canvasHeight)
         {
-            int width = grayScaleImage.PixelWidth, height = grayScaleImage.PixelHeight;
-            byte[] pixels = new byte[width * height];
-            grayScaleImage.CopyPixels(pixels, width, 0);
+            int width = grayScaleImage.PixelWidth, height = grayScaleImage.PixelHeight, bytesPerPixel = (grayScaleImage.Format.BitsPerPixel + 7) / 8, stride = width * bytesPerPixel;
 
-            int[] histogram = new int[256];
+            byte[] pixels = new byte[height * stride];
 
-            foreach (byte pixel in pixels)
-                histogram[pixel]++;
+            grayScaleImage.CopyPixels(pixels, stride, 0);
 
-            double maxFrequency = histogram.Max();
-            double barWidth = canvasWidth / histogram.Length;
-
-            List<Rectangle> bars = new();
-
-            for (int i = 0; i < histogram.Length; i++)
+            List<Rectangle> histogramBars = [];
+            int[] grayLevels = new int[256];
+            for (int i = 0; i < pixels.Length; i += bytesPerPixel)
             {
-                double barHeight = (histogram[i] / maxFrequency) * canvasHeight;
-
-                var bar = new Rectangle
+                byte pixelValue = pixels[i];  
+                grayLevels[pixelValue]++;
+            }
+            double maxGrayLevelCount = grayLevels.Max();
+            for (int i = 0; i < grayLevels.Length; i++)
+            {
+                double barHeight = (grayLevels[i] / maxGrayLevelCount) * canvasHeight;
+                Rectangle bar = new Rectangle
                 {
-                    Width = barWidth,
+                    Width = canvasWidth / 256,
                     Height = barHeight,
-                    Fill = Brushes.Black,
-                    Stroke = Brushes.Gray
+                    Fill = Brushes.Black
                 };
-
-                bars.Add(bar);
+                histogramBars.Add(bar);
             }
 
-            return bars;
+            return histogramBars;
         }
 
         private void ImageDisplay_MouseMove(object sender, MouseButtonEventArgs e)
