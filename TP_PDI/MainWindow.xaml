@@ -34,21 +34,16 @@
 
             <Grid x:Name="MaskInput" Visibility="Hidden" Height="50" Width="270" VerticalAlignment="Top" Margin="0, 380, 0, 0" HorizontalAlignment="Left">
                 <TextBlock Text="Informe o tamanho da máscara (Ex: 5x5)" />
-                <TextBox Height="30" VerticalAlignment="Bottom" x:Name="MaskValues" />
-            </Grid>
-
-            <Grid x:Name="ExpansionOrCompressionInput" Visibility="Hidden" Height="50" Width="270" VerticalAlignment="Top" Margin="0, 380, 0, 0" HorizontalAlignment="Left" >
-                <TextBlock Text="Informe os valores para A e B respectivamente (Ex: 2, 5)" />
-                <TextBox Height="30" VerticalAlignment="Bottom" />
+                <TextBox  TextChanged="HandleMaskOrGammaChange"  Height="30" VerticalAlignment="Bottom" x:Name="MaskValues" />
             </Grid>
             <Grid x:Name="GammaInput" Visibility="Hidden" Height="50" Width="270" VerticalAlignment="Top" Margin="0, 380, 0, 0" HorizontalAlignment="Left" >
                 <TextBlock Text="Insira o valor para gamma (apenas números)" />
-                <TextBox Height="30" VerticalAlignment="Bottom" x:Name="GammaValue" />
+                <TextBox TextChanged="HandleMaskOrGammaChange" Height="30" VerticalAlignment="Bottom" x:Name="GammaValue" />
             </Grid>
         </Grid>
 
         <Grid Height="30" Width="270" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="10" >
-            <Button x:Name="SubmitProcess" IsEnabled="True" Content="Enviar imagem" Click="ProcessImage" />
+            <Button x:Name="SubmitProcessButton" IsEnabled="True" Content="Enviar imagem" Click="ProcessImage" />
         </Grid>
 
         <Grid Margin="10">
@@ -69,8 +64,12 @@
                         x:Name="resultImage"/>
                 </Border>
             </Grid>
-            <Grid x:Name="AuxiliarImage" Visibility="Hidden" Height="310" Width="270" VerticalAlignment="Top" HorizontalAlignment="Center">
-                <Button IsEnabled="False" Content="Imagem resultante" Height="30" VerticalAlignment="Bottom"/>
+            <Grid x:Name="AuxiliarImage" Visibility="Hidden" Height="370" Width="270" VerticalAlignment="Top" HorizontalAlignment="Center">
+                <Button x:Name="SubmitAuxiliarImageButton" IsEnabled="False" Content="Imagem auxiliar" Height="30" VerticalAlignment="Bottom" Margin="0, 0, 0, 60" Click="SubmitAuxiliarImage"/>
+                <Grid x:Name="AuxiliarImageInput" Visibility="Hidden" Height="50" Width="270" VerticalAlignment="Bottom" HorizontalAlignment="Left" >
+                    <TextBlock Text="Insira o valor para a porcentagem (apenas números)" />
+                    <TextBox Height="30" VerticalAlignment="Bottom" x:Name="AuxiliarImageValue" />
+                </Grid>
                 <Border
                     BorderThickness="2"
                     BorderBrush="#e1e3e1"
@@ -82,15 +81,15 @@
                         Stretch="Fill"
                         Height="270" 
                         Width="270"
-                        x:Name="rotationImageResult"
+                        x:Name="auxiliarImageResult"
                         />
                 </Border>
             </Grid>
         </Grid>
 
-        <Grid VerticalAlignment="Bottom" HorizontalAlignment="Left" Margin="10,0,0,10" Height="184" Width="620">
-            <Border BorderThickness="1" BorderBrush="#e1e3e1" Width="620">
-                <Canvas MaxWidth="620" x:Name="histogramCanvas"/>
+        <Grid VerticalAlignment="Bottom" HorizontalAlignment="Left" Margin="10,0,0,10" Height="184" Width="600">
+            <Border BorderThickness="1" BorderBrush="#e1e3e1" Width="600">
+                <Canvas MaxWidth="600" x:Name="histogramCanvas"/>
             </Border>
         </Grid>
     </Grid>

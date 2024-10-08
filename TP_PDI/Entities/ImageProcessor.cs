@@ -16,6 +16,8 @@ namespace TP_PDI.Entities
     {
         public BitmapImage? BitmapImage { get; set; }
         public BitmapImage? GrayScaleImage { get; set; }
+        public BitmapImage? AuxiliarBitmapImage {  get; set; }
+        public BitmapImage? AuxiliarGrayScaleImage {  get; set; }
 
         public BitmapSource NegativeFilter()
         {

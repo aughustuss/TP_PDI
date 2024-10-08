@@ -45,8 +45,9 @@ namespace TP_PDI.Enuns
         [Description("Ampliação da imagem com interpolação por replicação de pixels")]
         EnlargementNearestNeighbor,
         [Description("Ampliação da imagem com interpolação bilinear")]
-        EnlargementBilinear
-
+        EnlargementBilinear,
+        [Description("Soma de imagens")]
+        TwoImagesSum
     }
 }
 

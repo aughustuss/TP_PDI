@@ -95,10 +95,25 @@ namespace TP_PDI
             if (dialog.ShowDialog() == true)
             {
                 _image.BitmapImage = new(new Uri(dialog.FileName));
-                imagePicture.Source = _image.BitmapImage;
                 _image.GrayScaleImage = HelpingMethods.GetGrayScale(dialog);
+                imagePicture.Source = _image.GrayScaleImage;
                 int[] histogram = CalculateHistogram(_image.GrayScaleImage);
                 DrawHistogram(histogram);
+            }
+        }
+
+        private void SubmitAuxiliarImage(object sender, RoutedEventArgs e)
+        {
+            OpenFileDialog dialog = new()
+            {
+                Filter = "Image files|*.jpg;*.png;*.bmp",
+                FilterIndex = 1,
+            };
+            if (dialog.ShowDialog() == true)
+            {
+                _image.AuxiliarBitmapImage = new(new Uri(dialog.FileName));
+                _image.AuxiliarGrayScaleImage = HelpingMethods.GetGrayScale(dialog);
+                auxiliarImageResult.Source = _image.AuxiliarGrayScaleImage;
             }
         }
 
@@ -136,8 +151,8 @@ namespace TP_PDI
 
                     var transormedBitmaps = degreesProcess(degrees);
                     resultImage.Source = transormedBitmaps[0];
-                    rotationImageResult.Source = transormedBitmaps[1];
                     AuxiliarImage.Visibility = Visibility.Visible;
+                    auxiliarImageResult.Source = transormedBitmaps[1];
                 }
                 
             }
@@ -159,20 +174,55 @@ namespace TP_PDI
                     case EProcess.Expansion:
                     case EProcess.Compression:
                         MaskInput.Visibility = Visibility.Visible;
-                        ExpansionOrCompressionInput.Visibility = Visibility.Hidden;
                         GammaInput.Visibility = Visibility.Hidden;
+                        SubmitProcessButton.IsEnabled = false;
+                        AuxiliarImage.Visibility = Visibility.Hidden;
+                        AuxiliarImageInput.Visibility = Visibility.Hidden;
+                        SubmitAuxiliarImageButton.IsEnabled = false;
                         break;
                     case EProcess.PowerAndRoot:
                         MaskInput.Visibility = Visibility.Hidden;
-                        ExpansionOrCompressionInput.Visibility = Visibility.Hidden;
                         GammaInput.Visibility = Visibility.Visible;
+                        SubmitProcessButton.IsEnabled = false;
+                        AuxiliarImage.Visibility = Visibility.Hidden;
+                        AuxiliarImageInput.Visibility = Visibility.Hidden;
+                        SubmitAuxiliarImageButton.IsEnabled = false;
+                        break;
+                    case EProcess.NinetyDegrees:
+                    case EProcess.OneHundredEightyDegrees:
+                        MaskInput.Visibility = Visibility.Hidden;
+                        GammaInput.Visibility = Visibility.Hidden;
+                        SubmitProcessButton.IsEnabled = true;
+                        AuxiliarImage.Visibility = Visibility.Visible;
+                        AuxiliarImageInput.Visibility = Visibility.Hidden;
+                        SubmitAuxiliarImageButton.IsEnabled = false;
+                        break;
+                    case EProcess.TwoImagesSum:
+                        MaskInput.Visibility = Visibility.Hidden;
+                        GammaInput.Visibility = Visibility.Hidden;
+                        SubmitProcessButton.IsEnabled = true;
+                        AuxiliarImage.Visibility = Visibility.Visible;
+                        AuxiliarImageInput.Visibility = Visibility.Visible;
+                        SubmitAuxiliarImageButton.IsEnabled = true;
                         break;
                     default:
                         MaskInput.Visibility = Visibility.Hidden;
-                        ExpansionOrCompressionInput.Visibility = Visibility.Hidden;
+                        GammaInput.Visibility = Visibility.Hidden;
+                        SubmitProcessButton.IsEnabled = true;
+                        AuxiliarImage.Visibility = Visibility.Hidden;
+                        AuxiliarImageInput.Visibility = Visibility.Hidden;
+                        SubmitAuxiliarImageButton.IsEnabled = false;
                         break;
                 }
             }
+        }
+
+        private void HandleMaskOrGammaChange(object sender, RoutedEventArgs e)
+        {
+            if (MaskValues.Text.Length > 2 || GammaValue.Text.Length > 2)
+                SubmitProcessButton.IsEnabled = true;
+            else
+                SubmitProcessButton.IsEnabled = false;
         }
 
         private static void OpenNewModal(BitmapSource img)
