@@ -488,8 +488,6 @@ namespace TP_PDI.Entities
 
             resizedImage.Lock();
 
-            resizedImage.Lock();
-
             double scaleX = (double)BitmapImage.PixelWidth / sizes;
             double scaleY = (double)BitmapImage.PixelHeight / sizes;
 
