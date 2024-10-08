@@ -44,31 +44,6 @@ namespace TP_PDI.Entities
             return negativeWriteableBitmap;
         }
 
-        public BitmapSource PowerAndRootFilter(double gamma)
-        {
-            if (GrayScaleImage == null) throw new Exception("Imagem não foi carregada corretamente.");
-
-            BitmapSource source = new FormatConvertedBitmap(GrayScaleImage, PixelFormats.Gray8, null, 0);
-            int width = source.PixelWidth, height = source.PixelHeight, stride = width;
-
-            byte[] pixels = new byte[width * height];
-            source.CopyPixels(pixels, stride, 0);
-
-            byte[] outputPixels = new byte[pixels.Length];
-            double c = 255.0 / Math.Pow(255, gamma);
-
-            for (int i = 0; i < pixels.Length; i++)
-            {
-                double powerValue = c * Math.Pow(pixels[i], gamma);
-                outputPixels[i] = (byte)Math.Clamp(powerValue, 0, 255); // Garantir que o valor esteja entre 0 e 255
-            }
-
-            WriteableBitmap resultBitmap = new(width, height, source.DpiX, source.DpiY, PixelFormats.Gray8, null);
-            resultBitmap.WritePixels(new Int32Rect(0, 0, width, height), outputPixels, stride, 0);
-
-            return resultBitmap;
-        }
-
         public BitmapSource LaplacianFilter()
         {
             if (GrayScaleImage == null) throw new Exception("Imagem não foi carregada corretamente.");
@@ -192,6 +167,36 @@ namespace TP_PDI.Entities
             for (int i = 0; i < pixels.Length; i++)
             {
                 outputPixels[i] = (byte)(c / (1 + Math.Log(1 + pixels[i])));
+            }
+
+            WriteableBitmap resultBitmap = new(width, height, source.DpiX, source.DpiY, PixelFormats.Gray8, null);
+            resultBitmap.WritePixels(new Int32Rect(0, 0, width, height), outputPixels, stride, 0);
+
+            return resultBitmap;
+        }
+
+        public BitmapSource TwoImagesSum(double percentage)
+        {
+            throw new NotImplementedException();
+        }
+
+        public BitmapSource PowerAndRootFilter(double gamma)
+        {
+            if (GrayScaleImage == null) throw new Exception("Imagem não foi carregada corretamente.");
+
+            BitmapSource source = new FormatConvertedBitmap(GrayScaleImage, PixelFormats.Gray8, null, 0);
+            int width = source.PixelWidth, height = source.PixelHeight, stride = width;
+
+            byte[] pixels = new byte[width * height];
+            source.CopyPixels(pixels, stride, 0);
+
+            byte[] outputPixels = new byte[pixels.Length];
+            double c = 255.0 / Math.Pow(255, gamma);
+
+            for (int i = 0; i < pixels.Length; i++)
+            {
+                double powerValue = c * Math.Pow(pixels[i], gamma);
+                outputPixels[i] = (byte)Math.Clamp(powerValue, 0, 255); // Garantir que o valor esteja entre 0 e 255
             }
 
             WriteableBitmap resultBitmap = new(width, height, source.DpiX, source.DpiY, PixelFormats.Gray8, null);

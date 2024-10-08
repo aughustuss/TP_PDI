@@ -11,6 +11,7 @@ namespace TP_PDI.Interfaces
         public BitmapSource InverseLogarithmFilter();
         public BitmapSource LaplacianFilter();
         public BitmapSource HighBoostFilter();
+        public BitmapSource TwoImagesSum(double percentage);
         public BitmapSource PowerAndRootFilter(double gamma);
         public BitmapSource MeanFilter(string mask);
         public BitmapSource MedianFilter(string mask);

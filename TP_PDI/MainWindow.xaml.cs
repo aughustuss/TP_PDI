@@ -26,6 +26,7 @@ namespace TP_PDI
         private readonly Dictionary<EProcess, Func<string, BitmapSource>> _processWithMask;
         private readonly Dictionary<EProcess, Func<EProcess, BitmapSource>> _prewittOrSobelProcess;
         private readonly Dictionary<EProcess, Func<double, BitmapSource>> _powerOrRootProcess;
+        private readonly Dictionary<EProcess, Func<double, BitmapSource>> _twoImagesSumProcess;
 
         private readonly ImageProcessor _image;
 
@@ -83,6 +84,11 @@ namespace TP_PDI
             {
                 { EProcess.PowerAndRoot, _image.PowerAndRootFilter },
             };
+
+            _twoImagesSumProcess = new Dictionary<EProcess, Func<double, BitmapSource>>
+            {
+                { EProcess.TwoImagesSum, _image.TwoImagesSum },
+            };
         }
 
         private void SubmitImage(object sender, RoutedEventArgs e)
@@ -125,9 +131,16 @@ namespace TP_PDI
                     resultImage.Source = process();
                 else if (_mirroringProcesses.TryGetValue(selectedProcess, out var mirroringProcess))
                     resultImage.Source = mirroringProcess(selectedProcess);
-                else if(_prewittOrSobelProcess.TryGetValue(selectedProcess, out var prewittOrSobelProcess))
+                else if (_prewittOrSobelProcess.TryGetValue(selectedProcess, out var prewittOrSobelProcess))
                     resultImage.Source = prewittOrSobelProcess(selectedProcess);
-                else if(_powerOrRootProcess.TryGetValue(selectedProcess, out var powerOrRootProcess))
+                else if (_twoImagesSumProcess.TryGetValue(selectedProcess, out var twoImagesSumProcess))
+                {
+                    if (double.TryParse(AuxiliarImageValue.Text, out double percentage))
+                        resultImage.Source = twoImagesSumProcess(percentage);
+                    else
+                        MessageBox.Show("Insira apenas valores numéricos.");
+                }
+                else if (_powerOrRootProcess.TryGetValue(selectedProcess, out var powerOrRootProcess))
                 {
                     if (double.TryParse(GammaValue.Text, out double gamma))
                         resultImage.Source = powerOrRootProcess(gamma);
