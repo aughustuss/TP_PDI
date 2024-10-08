@@ -137,7 +137,7 @@ namespace TP_PDI
                     var transormedBitmaps = degreesProcess(degrees);
                     resultImage.Source = transormedBitmaps[0];
                     rotationImageResult.Source = transormedBitmaps[1];
-                    RotatedImage.Visibility = Visibility.Visible;
+                    AuxiliarImage.Visibility = Visibility.Visible;
                 }
                 
             }
