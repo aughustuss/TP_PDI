@@ -4,50 +4,52 @@ namespace TP_PDI.Enuns
 {
     public enum EProcess
     {
-        [Description("Negativo")]
-        Negative,
-        [Description("Logaritmo")]
-        Logarithm,
-        [Description("Logaritmo Inverso")]
-        InverseLogarithm,
-        [Description("Potência e Raiz")]
-        PowerAndRoot,
-        [Description("Expansão")]
-        Expansion,
-        [Description("Compressão")]
+        [Description("Ampliação da imagem com interpolação bilinear")]
+        EnlargementBilinear,
+        [Description("Ampliação da imagem com interpolação por replicação de pixels")]
+        EnlargementNearestNeighbor,
+        [Description("Filtro de Compressão")]
         Compression,
+        [Description("Equalização")]
+        Equalization,
+        [Description("Espelhamento Horizontal")]
+        Horizontal,
+        [Description("Espelhamento Vertical")]
+        Vertical,
+        [Description("Filtro de Expansão")]
+        Expansion,
+        [Description("Filtro de Logaritmo")]
+        Logarithm,
+        [Description("Filtro de Logaritmo Inverso")]
+        InverseLogarithm,
+        [Description("Filtro de Potência e Raiz")]
+        PowerAndRoot,
         [Description("Filtro da Média")]
         Average,
         [Description("Filtro da Mediana")]
         Median,
         [Description("Filtro da Moda")]
         Mode,
-        [Description("Filtro do Mínimo")]
-        Minimun,
-        [Description("Filtro do Máximo")]
+        [Description("Filtro de Máximo")]
         Maximun,
-        [Description("Laplaciano")]
-        Laplacian,
-        [Description("HighBoost")]
+        [Description("Filtro de Mínimo")]
+        Minimun,
+        [Description("Filtro Negativo")]
+        Negative,
+        [Description("Operador HighBoost")]
         HighBoost,
-        [Description("Prewitt")]
+        [Description("Operador Laplaciano")]
+        Laplacian,
+        [Description("Operador Prewitt")]
         Prewitt,
-        [Description("Sobel")]
+        [Description("Operador Sobel")]
         Sobel,
-        [Description("Espelhamento Horizontal")]
-        Horizontal,
-        [Description("Espelhamento Vertical")]
-        Vertical,
-        [Description("Noventa Graus")]
-        NinetyDegrees,
-        [Description("Cento e Oitenta Graus")]
-        OneHundredEightyDegrees,
-        [Description("Ampliação da imagem com interpolação por replicação de pixels")]
-        EnlargementNearestNeighbor,
-        [Description("Ampliação da imagem com interpolação bilinear")]
-        EnlargementBilinear,
         [Description("Soma de imagens")]
-        TwoImagesSum
+        TwoImagesSum,
+        [Description("90 Graus")]
+        NinetyDegrees,
+        [Description("180 Graus")]
+        OneHundredEightyDegrees,
     }
 }
 

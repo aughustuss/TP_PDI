@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:TP_PDI"
         mc:Ignorable="d"
-        Title="Início" Height="700" Width="930"
+        Title="Início" Height="795" Width="930"
         Padding="0"
         Margin="0">
     <Grid>
@@ -87,7 +87,7 @@
             </Grid>
         </Grid>
 
-        <Grid VerticalAlignment="Bottom" HorizontalAlignment="Left" Margin="10,0,0,10" Height="184" Width="600">
+        <Grid VerticalAlignment="Bottom" HorizontalAlignment="Left" Margin="10,0,0,10" Height="252" Width="600">
             <Border BorderThickness="1" BorderBrush="#e1e3e1" Width="600">
                 <Canvas MaxWidth="600" x:Name="histogramCanvas"/>
             </Border>

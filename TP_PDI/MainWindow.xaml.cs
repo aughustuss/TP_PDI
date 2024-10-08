@@ -21,8 +21,8 @@ namespace TP_PDI
     public partial class MainWindow : Window
     {
         private readonly Dictionary<EProcess, Func<BitmapSource>> _process;
-        private readonly Dictionary<EProcess, Func<int, List<TransformedBitmap>>> _degreesProcesses;
-        private readonly Dictionary<EProcess, Func<EProcess, TransformedBitmap>> _mirroringProcesses;
+        private readonly Dictionary<EProcess, Func<EProcess, List<BitmapSource>>> _degreesProcesses;
+        private readonly Dictionary<EProcess, Func<EProcess, BitmapSource>> _mirroringProcesses;
         private readonly Dictionary<EProcess, Func<string, BitmapSource>> _processWithMask;
         private readonly Dictionary<EProcess, Func<EProcess, BitmapSource>> _prewittOrSobelProcess;
         private readonly Dictionary<EProcess, Func<double, BitmapSource>> _powerOrRootProcess;
@@ -47,15 +47,16 @@ namespace TP_PDI
                 { EProcess.InverseLogarithm, _image.InverseLogarithmFilter },
                 { EProcess.Laplacian, _image.LaplacianFilter },
                 { EProcess.HighBoost, _image.HighBoostFilter },
+                { EProcess.Equalization, _image.EqualizationFilter },
             };
 
-            _degreesProcesses = new Dictionary<EProcess, Func<int, List<TransformedBitmap>>>
+            _degreesProcesses = new Dictionary<EProcess, Func<EProcess, List<BitmapSource>>>
             {
                 { EProcess.NinetyDegrees, _image.DegreesFilter },
                 { EProcess.OneHundredEightyDegrees, _image.DegreesFilter }
             };
 
-            _mirroringProcesses = new Dictionary<EProcess, Func<EProcess, TransformedBitmap>>
+            _mirroringProcesses = new Dictionary<EProcess, Func<EProcess, BitmapSource>>
             {
                 { EProcess.Horizontal, _image.MirroringFilter },
                 { EProcess.Vertical, _image.MirroringFilter },
@@ -103,8 +104,7 @@ namespace TP_PDI
                 _image.BitmapImage = new(new Uri(dialog.FileName));
                 _image.GrayScaleImage = HelpingMethods.GetGrayScale(dialog);
                 imagePicture.Source = _image.GrayScaleImage;
-                int[] histogram = CalculateHistogram(_image.GrayScaleImage);
-                DrawHistogram(histogram);
+                DrawHistogram(_image.GrayScaleImage);
             }
         }
 
@@ -128,11 +128,20 @@ namespace TP_PDI
             if(FilterOptions.SelectedValue is EProcess selectedProcess)
             {
                 if (_process.TryGetValue(selectedProcess, out var process))
-                    resultImage.Source = process();
+                {
+                    BitmapSource img = process();
+                    resultImage.Source = img;
+                    if (selectedProcess == EProcess.Equalization)
+                        DrawHistogram(img);
+                }
                 else if (_mirroringProcesses.TryGetValue(selectedProcess, out var mirroringProcess))
+                {
                     resultImage.Source = mirroringProcess(selectedProcess);
+                }
                 else if (_prewittOrSobelProcess.TryGetValue(selectedProcess, out var prewittOrSobelProcess))
+                {
                     resultImage.Source = prewittOrSobelProcess(selectedProcess);
+                }
                 else if (_twoImagesSumProcess.TryGetValue(selectedProcess, out var twoImagesSumProcess))
                 {
                     if (double.TryParse(AuxiliarImageValue.Text, out double percentage))
@@ -156,13 +165,7 @@ namespace TP_PDI
                 }
                 else if (_degreesProcesses.TryGetValue(selectedProcess, out var degreesProcess))
                 {
-                    int degrees = 0;
-                    if (selectedProcess == EProcess.NinetyDegrees)
-                        degrees = 90;
-                    else if (selectedProcess == EProcess.OneHundredEightyDegrees)
-                        degrees = 180;
-
-                    var transormedBitmaps = degreesProcess(degrees);
+                    var transormedBitmaps = degreesProcess(selectedProcess);
                     resultImage.Source = transormedBitmaps[0];
                     AuxiliarImage.Visibility = Visibility.Visible;
                     auxiliarImageResult.Source = transormedBitmaps[1];
@@ -188,7 +191,7 @@ namespace TP_PDI
                     case EProcess.Compression:
                         MaskInput.Visibility = Visibility.Visible;
                         GammaInput.Visibility = Visibility.Hidden;
-                        SubmitProcessButton.IsEnabled = false;
+                        SubmitProcessButton.IsEnabled = MaskValues.Text.Length >= 3;
                         AuxiliarImage.Visibility = Visibility.Hidden;
                         AuxiliarImageInput.Visibility = Visibility.Hidden;
                         SubmitAuxiliarImageButton.IsEnabled = false;
@@ -196,7 +199,7 @@ namespace TP_PDI
                     case EProcess.PowerAndRoot:
                         MaskInput.Visibility = Visibility.Hidden;
                         GammaInput.Visibility = Visibility.Visible;
-                        SubmitProcessButton.IsEnabled = false;
+                        SubmitProcessButton.IsEnabled = GammaValue.Text.Length >= 3;
                         AuxiliarImage.Visibility = Visibility.Hidden;
                         AuxiliarImageInput.Visibility = Visibility.Hidden;
                         SubmitAuxiliarImageButton.IsEnabled = false;
@@ -244,48 +247,84 @@ namespace TP_PDI
             imageModal.ShowDialog();
         }
 
-        private static int[] CalculateHistogram(BitmapSource bitmapSource)
+        private void DrawHistogram(BitmapSource grayScaleImage)
         {
-            int[] histogram = new int[256];
+            if (grayScaleImage == null) throw new InvalidOperationException("A imagem em níveis de cinza deve estar definida.");
 
-            WriteableBitmap writeableBitmap = new(bitmapSource);
-            int width = writeableBitmap.PixelWidth;
-            int height = writeableBitmap.PixelHeight;
-            byte[] pixels = new byte[width * height * 4];
+            List<Rectangle> bars = GenerateHistogram(grayScaleImage, histogramCanvas.ActualWidth, histogramCanvas.ActualHeight);
 
-            writeableBitmap.CopyPixels(pixels, width * 4, 0);
+            histogramCanvas.Children.Clear();
+            double barWidth = histogramCanvas.ActualWidth / bars.Count;
 
-            for (int i = 0; i < pixels.Length; i += 4)
+            for (int i = 0; i <= 10; i++) 
             {
-                byte gray = pixels[i]; 
-                histogram[gray]++;
+                double yValue = (histogramCanvas.ActualHeight / 10) * i;
+                TextBlock yLabel = new TextBlock
+                {
+                    Text = (255 / 10 * i).ToString(),
+                    FontSize = 10,
+                    Foreground = Brushes.Black
+                };
+                Canvas.SetLeft(yLabel, 0);
+                Canvas.SetBottom(yLabel, yValue); 
+                histogramCanvas.Children.Add(yLabel);
             }
 
-            return histogram;
-        }
-        private void DrawHistogram(int[] histogram)
-        {
-            histogramCanvas.Children.Clear();
-
-            int max = histogram.Max();
-
-            double scale = 200.0 / max;
-
-            for (int i = 0; i < histogram.Length; i++)
+            for (int i = 0; i < bars.Count; i++)
             {
-                Rectangle bar = new Rectangle
-                {
-                    Width = 2,
-                    Height = histogram[i] * scale,
-                    Fill = System.Windows.Media.Brushes.Black
-                };
+                Rectangle bar = bars[i];
 
-                Canvas.SetLeft(bar, i * 3); 
-                Canvas.SetBottom(bar, 0);
+                Canvas.SetLeft(bar, i * barWidth);
+                Canvas.SetBottom(bar, 0); // Posicionando no eixo Y
 
                 histogramCanvas.Children.Add(bar);
             }
+
+            TextBlock xLabel = new()
+            {
+                Text = "NÍVEIS DE CINZA",
+                FontSize = 12,
+                Foreground = Brushes.Black,
+                TextAlignment = TextAlignment.Center
+            };
+            Canvas.SetLeft(xLabel, (histogramCanvas.ActualWidth / 2) - 40); 
+            Canvas.SetBottom(xLabel, -25); 
         }
+
+        private static List<Rectangle> GenerateHistogram(BitmapSource grayScaleImage, double canvasWidth, double canvasHeight)
+        {
+            int width = grayScaleImage.PixelWidth, height = grayScaleImage.PixelHeight;
+            byte[] pixels = new byte[width * height];
+            grayScaleImage.CopyPixels(pixels, width, 0);
+
+            int[] histogram = new int[256];
+
+            foreach (byte pixel in pixels)
+                histogram[pixel]++;
+
+            double maxFrequency = histogram.Max();
+            double barWidth = canvasWidth / histogram.Length;
+
+            List<Rectangle> bars = new();
+
+            for (int i = 0; i < histogram.Length; i++)
+            {
+                double barHeight = (histogram[i] / maxFrequency) * canvasHeight;
+
+                var bar = new Rectangle
+                {
+                    Width = barWidth,
+                    Height = barHeight,
+                    Fill = Brushes.Black,
+                    Stroke = Brushes.Gray
+                };
+
+                bars.Add(bar);
+            }
+
+            return bars;
+        }
+
         private void ImageDisplay_MouseMove(object sender, MouseButtonEventArgs e)
         {
             if (imagePicture.Source != null && _image.BitmapImage != null)

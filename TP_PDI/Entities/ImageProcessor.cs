@@ -175,6 +175,37 @@ namespace TP_PDI.Entities
             return resultBitmap;
         }
 
+        public BitmapSource EqualizationFilter()
+        {
+            if (GrayScaleImage == null) throw new Exception("Imagem não foi carregada corretamente.");
+
+            BitmapSource source = new FormatConvertedBitmap(GrayScaleImage, PixelFormats.Gray8, null, 0);
+            int width = source.PixelWidth, height = source.PixelHeight, stride = width;
+            byte[] pixels = new byte[width * height];
+
+            source.CopyPixels(pixels, stride, 0);
+
+            int[] histogram = new int[256];
+            for (int i = 0; i < pixels.Length; i++)
+                histogram[pixels[i]]++;
+
+            int totalPixels = width * height;
+            int[] cdf = new int[256];
+            cdf[0] = histogram[0];
+
+            for (int i = 1; i < 256; i++)
+                cdf[i] = cdf[i - 1] + histogram[i];
+
+            byte[] outputPixels = new byte[pixels.Length];
+            for (int i = 0; i < pixels.Length; i++)
+                outputPixels[i] = (byte)((cdf[pixels[i]] - cdf[0]) * 255 / (totalPixels - cdf[0]));
+
+            WriteableBitmap resultBitmap = new(width, height, source.DpiX, source.DpiY, PixelFormats.Gray8, null);
+            resultBitmap.WritePixels(new Int32Rect(0, 0, width, height), outputPixels, stride, 0);
+
+            return resultBitmap;
+        }
+
         public BitmapSource TwoImagesSum(double percentage)
         {
             throw new NotImplementedException();
@@ -651,36 +682,84 @@ namespace TP_PDI.Entities
             return "Posição invalida";
         }
 
-        public List<TransformedBitmap> DegreesFilter(int degrees)
+        public List<BitmapSource> DegreesFilter(EProcess degreesProcess)
         {
             if (GrayScaleImage == null) throw new Exception("Imagem não foi carregada corretamente.");
 
-            int[] positiveAndNegativeDegrees = [
-                degrees,
-                degrees * - 1
-            ];
+            BitmapSource source = new FormatConvertedBitmap(GrayScaleImage, PixelFormats.Gray8, null, 0);
+            int width = source.PixelWidth, height = source.PixelHeight, stride = width;
 
-            List<TransformedBitmap> tranformedImages = [];
+            byte[] pixels = new byte[width * height];
+            source.CopyPixels(pixels, stride, 0);
 
-            foreach (int value in positiveAndNegativeDegrees)
-                tranformedImages.Add(new TransformedBitmap(GrayScaleImage, new RotateTransform(value)));
+            List<BitmapSource> rotatedImages = [];
 
+            if (degreesProcess == EProcess.NinetyDegrees)
+            {
+                byte[] rotatedClockwise = new byte[width * height];
+                for (int y = 0; y < height; y++)
+                {
+                    for (int x = 0; x < width; x++)
+                        rotatedClockwise[x * height + (height - 1 - y)] = pixels[y * stride + x];
+                }
 
-            return tranformedImages;
+                byte[] rotatedCounterClockwise = new byte[width * height];
+                for (int y = 0; y < height; y++)
+                {
+                    for (int x = 0; x < width; x++)
+                        rotatedCounterClockwise[(width - 1 - x) * height + y] = pixels[y * stride + x];
+                }
+
+                rotatedImages.Add(CreateBitmap(rotatedClockwise, height, width));
+                rotatedImages.Add(CreateBitmap(rotatedCounterClockwise, height, width));
+            }
+            else if (degreesProcess == EProcess.OneHundredEightyDegrees)
+            {
+                byte[] rotated = new byte[width * height];
+                for (int y = 0; y < height; y++)
+                {
+                    for (int x = 0; x < width; x++)
+                    {
+                        rotated[(height - 1 - y) * width + (width - 1 - x)] = pixels[y * stride + x];
+                    }
+                }
+
+                rotatedImages.Add(CreateBitmap(rotated, width, height));
+                rotatedImages.Add(CreateBitmap(rotated, width, height)); // 180 graus é o mesmo tanto horário quanto anti-horário
+            }
+
+            return rotatedImages;
         }
 
-        public TransformedBitmap MirroringFilter(EProcess mirroringProcess)
+        public BitmapSource MirroringFilter(EProcess mirroringProcess)
         {
             if (GrayScaleImage == null) throw new Exception("Imagem não foi carregada corretamente.");
 
-            TransformedBitmap transformedImage;
+            BitmapSource source = new FormatConvertedBitmap(GrayScaleImage, PixelFormats.Gray8, null, 0);
+            int width = source.PixelWidth;
+            int height = source.PixelHeight;
+            int stride = width;
 
-            if(mirroringProcess == EProcess.Vertical)
-                transformedImage = new(GrayScaleImage, new ScaleTransform(1, -1));
-            else 
-                transformedImage = new(GrayScaleImage, new ScaleTransform(-1, 1));
+            byte[] pixels = new byte[width * height];
+            source.CopyPixels(pixels, stride, 0);
 
-            return transformedImage;
+            byte[] outputPixels = new byte[width * height];
+
+            for (int y = 0; y < height; y++)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    if(mirroringProcess == EProcess.Horizontal)
+                        outputPixels[y * stride + (width - 1 - x)] = pixels[y * stride + x];
+                    else if(mirroringProcess == EProcess.Vertical)
+                        outputPixels[(height - 1 - y) * stride + x] = pixels[y * stride + x];
+                }
+            }
+
+            WriteableBitmap resultBitmap = new(width, height, source.DpiX, source.DpiY, PixelFormats.Gray8, null);
+            resultBitmap.WritePixels(new Int32Rect(0, 0, width, height), outputPixels, stride, 0);
+
+            return resultBitmap;
         }
 
         public BitmapSource PrewittOrSobelFilter(EProcess process)
@@ -747,6 +826,14 @@ namespace TP_PDI.Entities
             }
 
             return values;
+        }
+
+        private BitmapSource CreateBitmap(byte[] pixels, int width, int height)
+        {
+            WriteableBitmap resultBitmap = new(width, height, 96, 96, PixelFormats.Gray8, null);
+            int stride = width;
+            resultBitmap.WritePixels(new Int32Rect(0, 0, width, height), pixels, stride, 0);
+            return resultBitmap;
         }
 
         private static (int[,], int[,]) GetPrewittOrSobelMask(EProcess process)

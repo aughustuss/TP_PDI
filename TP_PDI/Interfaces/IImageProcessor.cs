@@ -11,6 +11,7 @@ namespace TP_PDI.Interfaces
         public BitmapSource InverseLogarithmFilter();
         public BitmapSource LaplacianFilter();
         public BitmapSource HighBoostFilter();
+        public BitmapSource EqualizationFilter();
         public BitmapSource TwoImagesSum(double percentage);
         public BitmapSource PowerAndRootFilter(double gamma);
         public BitmapSource MeanFilter(string mask);
@@ -23,8 +24,8 @@ namespace TP_PDI.Interfaces
         public BitmapSource NearestNeighbor(string newSizes);
         public BitmapSource Bilinear(string newSizes);
         public string PointOfProve(string positions);
-        public List<TransformedBitmap> DegreesFilter(int degrees);
+        public List<BitmapSource> DegreesFilter(EProcess process);
         public BitmapSource PrewittOrSobelFilter(EProcess process);
-        public TransformedBitmap MirroringFilter(EProcess mirroringProcess);
+        public BitmapSource MirroringFilter(EProcess mirroringProcess);
     }
 }
