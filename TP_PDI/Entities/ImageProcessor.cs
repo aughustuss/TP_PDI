@@ -625,41 +625,33 @@ namespace TP_PDI.Entities
 
         public BitmapSource NearestNeighbor(string newSizes)
         {
-            int sizes = GetValuesFromInput(newSizes)[0];
 
             if (BitmapImage == null) throw new Exception("Imagem não foi carregada.");
+            int originalWidth = BitmapImage.PixelWidth;
+            int originalHeight = BitmapImage.PixelHeight;
 
-            WriteableBitmap resizedImage = new(sizes, sizes, BitmapImage.DpiX, BitmapImage.DpiY, PixelFormats.Pbgra32, null);
+            int[] sizes = GetValuesFromInput(newSizes);
+            int newWidth = sizes[0];
+            int newHeight = sizes[1];
 
-            resizedImage.Lock();
+            WriteableBitmap resizedImage = new(newWidth, newHeight, BitmapImage.DpiX, BitmapImage.DpiY, BitmapImage.Format, BitmapImage.Palette);
 
-            double scaleX = (double)BitmapImage.PixelWidth / sizes;
-            double scaleY = (double)BitmapImage.PixelHeight / sizes;
 
-            int[] originalPixels = new int[BitmapImage.PixelWidth * BitmapImage.PixelHeight];
-            BitmapImage.CopyPixels(Int32Rect.Empty, originalPixels,
-                BitmapImage.PixelWidth * 4, 0);
-
-            int[] resizedPixels = new int[sizes * sizes];
-
-            for (int y = 0; y < sizes; y++)
+            for (int i = 0; i < newHeight; i++)
             {
-                for (int x = 0; x < sizes; x++)
+                for (int j = 0; j < newWidth; j++)
                 {
-                    int originalX = (int)(x * scaleX);
-                    int originalY = (int)(y * scaleY);
+                    int originalX = (int)(j * originalWidth / (double)newWidth);
+                    int originalY = (int)(i * originalHeight / (double)newHeight);
 
-                    int originalIndex = originalY * BitmapImage.PixelWidth + originalX;
-                    int resizedIndex = y * sizes + x;
+                    byte[] originalPixel = new byte[4];
 
-                    resizedPixels[resizedIndex] = originalPixels[originalIndex];
+                    BitmapImage.CopyPixels(new Int32Rect(originalX, originalY, 1, 1), originalPixel, 4, 0);
+
+                    resizedImage.WritePixels(new Int32Rect(j, i, 1, 1), originalPixel, 4, 0);
+
                 }
             }
-
-            resizedImage.WritePixels(new Int32Rect(0, 0, sizes, sizes),
-                resizedPixels, sizes * 4, 0);
-
-            resizedImage.Unlock();
 
             return resizedImage;
 
@@ -667,74 +659,60 @@ namespace TP_PDI.Entities
 
         public BitmapSource Bilinear(string newSizes)
         {
-            int sizes = GetValuesFromInput(newSizes)[0];
 
             if (BitmapImage == null) throw new Exception("Imagem não foi carregada.");
 
-            WriteableBitmap resizedImage = new WriteableBitmap(sizes, sizes, BitmapImage.DpiX, BitmapImage.DpiY, PixelFormats.Pbgra32, null);
+            int originalWidth = BitmapImage.PixelWidth;
+            int originalHeight = BitmapImage.PixelHeight;
 
-            resizedImage.Lock();
+            int[] sizes = GetValuesFromInput(newSizes);
+            int newWidth = sizes[0];
+            int newHeight = sizes[1];
 
-            double scaleX = (double)BitmapImage.PixelWidth / sizes;
-            double scaleY = (double)BitmapImage.PixelHeight / sizes;
+            WriteableBitmap resizedImage = new(newWidth, newHeight, BitmapImage.DpiX, BitmapImage.DpiY, BitmapImage.Format, BitmapImage.Palette);
 
-            int[] originalPixels = new int[BitmapImage.PixelWidth * BitmapImage.PixelHeight];
-            BitmapImage.CopyPixels(Int32Rect.Empty, originalPixels,
-                BitmapImage.PixelWidth * 4, 0);
-
-            int[] resizedPixels = new int[sizes * sizes];
-
-            for (int y = 0; y < sizes; y++)
+            for (int i = 0; i < newHeight; i++)
             {
-                for (int x = 0; x < sizes; x++)
+                for (int j = 0; j < newWidth; j++)
                 {
-                    double srcX = x * scaleX;
-                    double srcY = y * scaleY;
+                    double xRatio = (double)(originalWidth - 1) / newWidth;
+                    double yRatio = (double)(originalHeight - 1) / newHeight;
 
-                    int x0 = (int)srcX;
-                    int y0 = (int)srcY;
+                    double x = xRatio * j;
+                    double y = yRatio * i;
 
-                    int x1 = Math.Min(x0 + 1, BitmapImage.PixelWidth - 1);
-                    int y1 = Math.Min(y0 + 1, BitmapImage.PixelHeight - 1);
+                    int xL = (int)x;
+                    int yT = (int)y;
+                    int xR = Math.Min(xL + 1, originalWidth - 1);
+                    int yB = Math.Min(yT + 1, originalHeight - 1);
 
-                    double xDiff = srcX - x0;
-                    double yDiff = srcY - y0;
+                    double xDiff = x - xL;
+                    double yDiff = y - yT;
 
-                    int[] pixels = new int[4];
-                    pixels[0] = originalPixels[y0 * BitmapImage.PixelWidth + x0];
-                    pixels[1] = originalPixels[y0 * BitmapImage.PixelWidth + x1];
-                    pixels[2] = originalPixels[y1 * BitmapImage.PixelWidth + x0];
-                    pixels[3] = originalPixels[y1 * BitmapImage.PixelWidth + x1];
+                    byte[] topLeft = new byte[4];
+                    byte[] topRight = new byte[4];
+                    byte[] bottomLeft = new byte[4];
+                    byte[] bottomRight = new byte[4];
 
-                    byte a = (byte)((((pixels[0] >> 24) & 0xFF) * (1 - xDiff) * (1 - yDiff)) +
-                                    (((pixels[1] >> 24) & 0xFF) * xDiff * (1 - yDiff)) +
-                                    (((pixels[2] >> 24) & 0xFF) * (1 - xDiff) * yDiff) +
-                                    (((pixels[3] >> 24) & 0xFF) * xDiff * yDiff));
+                    BitmapImage.CopyPixels(new Int32Rect(xL, yT, 1, 1), topLeft, 4, 0);
+                    BitmapImage.CopyPixels(new Int32Rect(xR, yT, 1, 1), topRight, 4, 0);
+                    BitmapImage.CopyPixels(new Int32Rect(xL, yB, 1, 1), bottomLeft, 4, 0);
+                    BitmapImage.CopyPixels(new Int32Rect(xR, yB, 1, 1), bottomRight, 4, 0);
 
-                    byte r = (byte)((((pixels[0] >> 16) & 0xFF) * (1 - xDiff) * (1 - yDiff)) +
-                                    (((pixels[1] >> 16) & 0xFF) * xDiff * (1 - yDiff)) +
-                                    (((pixels[2] >> 16) & 0xFF) * (1 - xDiff) * yDiff) +
-                                    (((pixels[3] >> 16) & 0xFF) * xDiff * yDiff));
+                    byte[] interpolatedPixel = new byte[4];
+                    for (int k = 0; k < 4; k++)
+                    {
+                        interpolatedPixel[k] = (byte)(
+                            topLeft[k] * (1 - xDiff) * (1 - yDiff) +
+                            topRight[k] * xDiff * (1 - yDiff) +
+                            bottomLeft[k] * (1 - xDiff) * yDiff +
+                            bottomRight[k] * xDiff * yDiff
+                        );
+                    }
 
-                    byte g = (byte)((((pixels[0] >> 8) & 0xFF) * (1 - xDiff) * (1 - yDiff)) +
-                                    (((pixels[1] >> 8) & 0xFF) * xDiff * (1 - yDiff)) +
-                                    (((pixels[2] >> 8) & 0xFF) * (1 - xDiff) * yDiff) +
-                                    (((pixels[3] >> 8) & 0xFF) * xDiff * yDiff));
-
-                    byte b = (byte)((((pixels[0] & 0xFF) * (1 - xDiff) * (1 - yDiff)) +
-                                    (((pixels[1] & 0xFF) * xDiff * (1 - yDiff)) +
-                                    (((pixels[2] & 0xFF) * (1 - xDiff) * yDiff) +
-                                    (((pixels[3] & 0xFF) * xDiff * yDiff))))));
-
-                    int resizedIndex = y * sizes + x;
-                    resizedPixels[resizedIndex] = (a << 24) | (r << 16) | (g << 8) | b;
+                    resizedImage.WritePixels(new Int32Rect(j, i, 1, 1), interpolatedPixel, 4, 0);
                 }
             }
-
-            resizedImage.WritePixels(new Int32Rect(0, 0, sizes, sizes),
-                resizedPixels, sizes * 4, 0);
-
-            resizedImage.Unlock();
 
             return resizedImage;
         }
