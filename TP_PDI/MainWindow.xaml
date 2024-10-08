@@ -25,13 +25,14 @@
             </Border>
         </Grid>
 
-        <Grid Margin="0,10,10,0" Height="260" VerticalAlignment="Top" HorizontalAlignment="Right" Width="220">
+        <Grid x:Name="ResultedGrid" Margin="0,10,10,0" Height="260" VerticalAlignment="Top" HorizontalAlignment="Right" Width="220">
             <Button IsEnabled="False" Content="Imagem resultante" Height="30" VerticalAlignment="Bottom"/>
             <Border
                 BorderThickness="2"
                 BorderBrush="#e1e3e1"
                 VerticalAlignment="Top"
-                Height="220" >
+                Height="220" 
+                x:Name="ResultedBorder">
                 <Image      
                     VerticalAlignment="Stretch" 
                     HorizontalAlignment="Stretch"

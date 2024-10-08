@@ -105,7 +105,17 @@ namespace TP_PDI
                 else if (_processWithMask.TryGetValue(selectedProcess, out var processWithMask))
                     resultImage.Source = processWithMask(MaskValues.Text);
                 else if (_enlargementProcesses.TryGetValue(selectedProcess, out var enlargementProcesses))
-                    resultImage.Source = enlargementProcesses(SizeValues.Text);
+                {
+                    BitmapSource img = enlargementProcesses(SizeValues.Text);
+                    resultImage.Height = img.PixelHeight;
+                    resultImage.Width = img.PixelWidth;
+                    ResultedGrid.Width = img.PixelWidth;
+                    ResultedGrid.Height = img.PixelHeight;
+                    ResultedBorder.Height = img.PixelHeight;
+          
+                    resultImage.Source = img;
+
+                }
                 else if (_degreesProcesses.TryGetValue(selectedProcess, out var degreesProcess))
                 {
                     int degrees = 0;
