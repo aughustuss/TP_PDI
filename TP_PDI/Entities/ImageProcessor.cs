@@ -53,7 +53,6 @@ namespace TP_PDI.Entities
             return negativeWriteableBitmap;
         }
 
-
         public BitmapSource LaplacianFilter()
         {
             if (GrayScaleImage == null) throw new Exception("Imagem não foi carregada corretamente.");
@@ -350,7 +349,6 @@ namespace TP_PDI.Entities
             return result;
         }
 
-
         public BitmapSource MedianFilter(string mask)
         {
             if (GrayScaleImage == null) throw new Exception("Imagem não foi carregada corretamente.");
@@ -455,7 +453,6 @@ namespace TP_PDI.Entities
             return result;
         }
 
-
         public BitmapSource MinFilter(string mask)
         {
             int kernelSize = GetValuesFromInput(mask)[0];
@@ -511,7 +508,6 @@ namespace TP_PDI.Entities
             return result;
         }
 
-
         public BitmapSource MaxFilter(string mask)
         {
             int kernelSize = GetValuesFromInput(mask)[0];
@@ -566,7 +562,6 @@ namespace TP_PDI.Entities
 
             return result;
         }
-
 
         public BitmapSource ExpansionFilter(string values)
         {
