@@ -10,28 +10,22 @@ namespace TP_PDI.Enuns
         Logarithm,
         [Description("Logaritmo Inverso")]
         InverseLogarithm,
-        [Description("Exponenciação")]
-        Power,
-        [Description("Raiz")]
-        Root,
+        [Description("Potência e Raiz")]
+        PowerAndRoot,
         [Description("Expansão")]
         Expansion,
         [Description("Compressão")]
         Compression,
-        [Description("Média")]
+        [Description("Filtro da Média")]
         Average,
-        [Description("Mediana")]
+        [Description("Filtro da Mediana")]
         Median,
-        [Description("Moda")]
+        [Description("Filtro da Moda")]
         Mode,
-        [Description("Mínimo")]
+        [Description("Filtro do Mínimo")]
         Minimun,
-        [Description("Máximo")]
+        [Description("Filtro do Máximo")]
         Maximun,
-        [Description("Replicação de Pixels")]
-        PixelsReplication,
-        [Description("Bilinear")]
-        Bilinear,
         [Description("Laplaciano")]
         Laplacian,
         [Description("HighBoost")]

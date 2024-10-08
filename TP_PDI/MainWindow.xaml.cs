@@ -24,7 +24,9 @@ namespace TP_PDI
         private readonly Dictionary<EProcess, Func<int, List<TransformedBitmap>>> _degreesProcesses;
         private readonly Dictionary<EProcess, Func<EProcess, TransformedBitmap>> _mirroringProcesses;
         private readonly Dictionary<EProcess, Func<string, BitmapSource>> _processWithMask;
-        private readonly Dictionary<EProcess, Func<string,BitmapSource>> _enlargementProcesses;
+        private readonly Dictionary<EProcess, Func<EProcess, BitmapSource>> _prewittOrSobelProcess;
+        private readonly Dictionary<EProcess, Func<double, BitmapSource>> _powerOrRootProcess;
+
         private readonly ImageProcessor _image;
 
         public MainWindow()
@@ -37,17 +39,11 @@ namespace TP_PDI
                 .GetValues(typeof(EProcess)).Cast<EProcess>()
                 .Select(ep => new { Value = ep, Description = HelpingMethods.GetEnumDescription(ep) });
 
-            DegreesOptions.ItemsSource = new List<int>()
-            {
-                90,
-                180
-            };
-
             _process = new Dictionary<EProcess, Func<BitmapSource>>
             {
                 { EProcess.Negative, _image.NegativeFilter },
                 { EProcess.Logarithm, _image.LogarithmicFilter },
-                { EProcess.InverseLogarithm, _image.InverseLogaritmFilter },
+                { EProcess.InverseLogarithm, _image.InverseLogarithmFilter },
                 { EProcess.Laplacian, _image.LaplacianFilter },
                 { EProcess.HighBoost, _image.HighBoostFilter },
             };
@@ -66,16 +62,26 @@ namespace TP_PDI
 
             _processWithMask = new Dictionary<EProcess, Func<string, BitmapSource>>
             {
-                { EProcess.Expansion, _image.MeanFilter },
+                { EProcess.Mode, _image.ModeFilter },
+                { EProcess.Average, _image.MeanFilter},
                 { EProcess.Median, _image.MedianFilter },
                 { EProcess.Maximun, _image.MaxFilter },
                 { EProcess.Minimun, _image.MinFilter },
+                { EProcess.EnlargementBilinear, _image.Bilinear },
+                { EProcess.EnlargementNearestNeighbor, _image.NearestNeighbor },
+                { EProcess.Expansion, _image.ExpansionFilter },
+                { EProcess.Compression, _image.CompressionFilter }
             };
 
-            _enlargementProcesses = new Dictionary<EProcess, Func<string, BitmapSource>>
+            _prewittOrSobelProcess = new Dictionary<EProcess, Func<EProcess, BitmapSource>>
             {
-                {EProcess.EnlargementBilinear, _image.Bilinear},
-                {EProcess.EnlargementNearestNeighbor, _image.NearestNeighbor}
+                { EProcess.Sobel, _image.PrewittOrSobelFilter },
+                { EProcess.Prewitt, _image.PrewittOrSobelFilter },
+            };
+
+            _powerOrRootProcess = new Dictionary<EProcess, Func<double, BitmapSource>>
+            {
+                { EProcess.PowerAndRoot, _image.PowerAndRootFilter },
             };
         }
 
@@ -91,6 +97,8 @@ namespace TP_PDI
                 _image.BitmapImage = new(new Uri(dialog.FileName));
                 imagePicture.Source = _image.BitmapImage;
                 _image.GrayScaleImage = HelpingMethods.GetGrayScale(dialog);
+                int[] histogram = CalculateHistogram(_image.GrayScaleImage);
+                DrawHistogram(histogram);
             }
         }
 
@@ -102,19 +110,21 @@ namespace TP_PDI
                     resultImage.Source = process();
                 else if (_mirroringProcesses.TryGetValue(selectedProcess, out var mirroringProcess))
                     resultImage.Source = mirroringProcess(selectedProcess);
-                else if (_processWithMask.TryGetValue(selectedProcess, out var processWithMask))
-                    resultImage.Source = processWithMask(MaskValues.Text);
-                else if (_enlargementProcesses.TryGetValue(selectedProcess, out var enlargementProcesses))
+                else if(_prewittOrSobelProcess.TryGetValue(selectedProcess, out var prewittOrSobelProcess))
+                    resultImage.Source = prewittOrSobelProcess(selectedProcess);
+                else if(_powerOrRootProcess.TryGetValue(selectedProcess, out var powerOrRootProcess))
                 {
-                    BitmapSource img = enlargementProcesses(SizeValues.Text);
-                    resultImage.Height = img.PixelHeight;
-                    resultImage.Width = img.PixelWidth;
-                    ResultedGrid.Width = img.PixelWidth;
-                    ResultedGrid.Height = img.PixelHeight;
-                    ResultedBorder.Height = img.PixelHeight;
-          
+                    if (double.TryParse(GammaValue.Text, out double gamma))
+                        resultImage.Source = powerOrRootProcess(gamma);
+                    else
+                        MessageBox.Show("Insira apenas valores numéricos.");
+                }
+                else if (_processWithMask.TryGetValue(selectedProcess, out var processWithMask))
+                {
+                    BitmapSource img = processWithMask(MaskValues.Text);
                     resultImage.Source = img;
-
+                    if (selectedProcess == EProcess.EnlargementBilinear || selectedProcess == EProcess.EnlargementNearestNeighbor)
+                        OpenNewModal(img);
                 }
                 else if (_degreesProcesses.TryGetValue(selectedProcess, out var degreesProcess))
                 {
@@ -144,48 +154,34 @@ namespace TP_PDI
                     case EProcess.Maximun:
                     case EProcess.Mode:
                     case EProcess.Average:
-                    case EProcess.Laplacian:
-                        MaskInput.Visibility = Visibility.Visible;
-                        ExpansionOrCompressionInput.Visibility = Visibility.Hidden;
-                        DegreesInput.Visibility = Visibility.Hidden;
-                        EnlargementInput.Visibility = Visibility.Hidden;
-                        break;
-                    case EProcess.Expansion:
-                    case EProcess.Compression:
-                        MaskInput.Visibility = Visibility.Hidden;
-                        ExpansionOrCompressionInput.Visibility = Visibility.Visible;
-                        DegreesInput.Visibility = Visibility.Hidden;
-                        EnlargementInput.Visibility = Visibility.Hidden;
-                        break;
-                    case EProcess.NinetyDegrees:
-                    case EProcess.OneHundredEightyDegrees:
-                        MaskInput.Visibility = Visibility.Hidden;
-                        ExpansionOrCompressionInput.Visibility= Visibility.Hidden;
-                        DegreesInput.Visibility = Visibility.Visible;
-                        EnlargementInput.Visibility = Visibility.Hidden;
-                        break;
                     case EProcess.EnlargementNearestNeighbor:
                     case EProcess.EnlargementBilinear:
+                    case EProcess.Expansion:
+                    case EProcess.Compression:
+                        MaskInput.Visibility = Visibility.Visible;
+                        ExpansionOrCompressionInput.Visibility = Visibility.Hidden;
+                        GammaInput.Visibility = Visibility.Hidden;
+                        break;
+                    case EProcess.PowerAndRoot:
                         MaskInput.Visibility = Visibility.Hidden;
                         ExpansionOrCompressionInput.Visibility = Visibility.Hidden;
-                        DegreesInput.Visibility = Visibility.Hidden;
-                        EnlargementInput.Visibility = Visibility.Visible;
+                        GammaInput.Visibility = Visibility.Visible;
                         break;
                     default:
                         MaskInput.Visibility = Visibility.Hidden;
                         ExpansionOrCompressionInput.Visibility = Visibility.Hidden;
-                        EnlargementInput.Visibility = Visibility.Hidden;
                         break;
                 }
             }
         }
 
-        private void HandleTextChange(object sender, RoutedEventArgs e)
+        private static void OpenNewModal(BitmapSource img)
         {
-            
+            ImageWindow imageModal = new(img);
+            imageModal.ShowDialog();
         }
 
-        private int[] CalculateHistogram(BitmapSource bitmapSource)
+        private static int[] CalculateHistogram(BitmapSource bitmapSource)
         {
             int[] histogram = new int[256];
 
