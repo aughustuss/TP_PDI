@@ -9,6 +9,7 @@ using Microsoft.Win32;
 using SixLabors.ImageSharp.Processing;
 using TP_PDI.Enuns;
 using SixLabors.ImageSharp;
+using System.Windows.Media.Media3D;
 
 namespace TP_PDI.Entities
 {
@@ -21,28 +22,37 @@ namespace TP_PDI.Entities
 
         public BitmapSource NegativeFilter()
         {
-            WriteableBitmap writeableBitmap = new(GrayScaleImage);
-            int width = writeableBitmap.PixelWidth;
-            int height = writeableBitmap.PixelHeight;
-            int[] pixels = new int[width * height];
-            writeableBitmap.CopyPixels(pixels, width * 4, 0);
-            for (int i = 0; i < pixels.Length; i++)
+            if (GrayScaleImage == null) throw new Exception("Imagem não foi carregada corretamente.");
+
+            
+            BitmapSource source = new FormatConvertedBitmap(GrayScaleImage, PixelFormats.Bgra32, null, 0);
+            int width = source.PixelWidth;
+            int height = source.PixelHeight;
+            int stride = width * 4; 
+
+            byte[] pixels = new byte[height * stride];
+            source.CopyPixels(pixels, stride, 0);
+
+            
+            for (int i = 0; i < pixels.Length; i += 4)
             {
-                byte a = (byte)((pixels[i] >> 24) & 0xff); // Alpha (transparência)
-                byte r = (byte)((pixels[i] >> 16) & 0xff); // Red
-                byte g = (byte)((pixels[i] >> 8) & 0xff);  // Green
-                byte b = (byte)(pixels[i] & 0xff);         // Blue
-                byte negativeR = (byte)(255 - r);
-                byte negativeG = (byte)(255 - g);
-                byte negativeB = (byte)(255 - b);
-                pixels[i] = (a << 24) | (negativeR << 16) | (negativeG << 8) | negativeB;
+                byte a = pixels[i + 3]; 
+                byte r = pixels[i + 2]; 
+                byte g = pixels[i + 1]; 
+                byte b = pixels[i];     
+
+                pixels[i + 2] = (byte)(255 - r); 
+                pixels[i + 1] = (byte)(255 - g); 
+                pixels[i] = (byte)(255 - b);     
             }
 
-            WriteableBitmap negativeWriteableBitmap = new WriteableBitmap(width, height, writeableBitmap.DpiX, writeableBitmap.DpiY, PixelFormats.Pbgra32, null);
-            negativeWriteableBitmap.WritePixels(new Int32Rect(0, 0, width, height), pixels, width * 4, 0);
+            
+            WriteableBitmap negativeWriteableBitmap = new WriteableBitmap(width, height, source.DpiX, source.DpiY, PixelFormats.Bgra32, null);
+            negativeWriteableBitmap.WritePixels(new Int32Rect(0, 0, width, height), pixels, stride, 0);
 
             return negativeWriteableBitmap;
         }
+
 
         public BitmapSource LaplacianFilter()
         {
@@ -177,7 +187,49 @@ namespace TP_PDI.Entities
 
         public BitmapSource TwoImagesSum(double percentage)
         {
-            throw new NotImplementedException();
+
+            BitmapSource source = new FormatConvertedBitmap(GrayScaleImage, PixelFormats.Gray8, null, 0);
+            BitmapSource auxiliarSource = new FormatConvertedBitmap(AuxiliarGrayScaleImage, PixelFormats.Gray8, null, 0);
+
+            if (source.PixelWidth != auxiliarSource.PixelWidth || source.PixelHeight != auxiliarSource.PixelHeight)
+            {
+                throw new ArgumentException("As imagens devem ter as mesmas dimensões.");
+            }
+
+            int[] pixels1 = new int[source.PixelWidth * source.PixelHeight];
+            int[] pixels2 = new int[auxiliarSource.PixelWidth * auxiliarSource.PixelHeight];
+            int[] resultPixels = new int[source.PixelWidth * source.PixelHeight];
+
+            source.CopyPixels(pixels1, source.PixelWidth * 4, 0);
+            auxiliarSource.CopyPixels(pixels2, auxiliarSource.PixelWidth * 4, 0);
+            percentage = percentage / 100;
+            double percentage2 = 1.0 - percentage;
+            for (int i = 0; i < pixels1.Length; i++)
+            {
+               
+                byte a1 = (byte)((pixels1[i] >> 24) & 0xFF);
+                byte r1 = (byte)((pixels1[i] >> 16) & 0xFF);
+                byte g1 = (byte)((pixels1[i] >> 8) & 0xFF);
+                byte b1 = (byte)(pixels1[i] & 0xFF);
+
+                byte a2 = (byte)((pixels2[i] >> 24) & 0xFF);
+                byte r2 = (byte)((pixels2[i] >> 16) & 0xFF);
+                byte g2 = (byte)((pixels2[i] >> 8) & 0xFF);
+                byte b2 = (byte)(pixels2[i] & 0xFF);
+
+
+                byte aResult = (byte)Math.Min((a1 * percentage + a2 * percentage2), 255);
+                byte rResult = (byte)Math.Min((r1 * percentage + r2 * percentage2), 255);
+                byte gResult = (byte)Math.Min((g1 * percentage + g2 * percentage2), 255);
+                byte bResult = (byte)Math.Min((b1 * percentage + b2 * percentage2), 255);
+
+
+                resultPixels[i] = (aResult << 24) | (rResult << 16) | (gResult << 8) | bResult;
+            }
+
+            WriteableBitmap result = new(source.PixelWidth, source.PixelHeight, source.DpiX, source.DpiY, PixelFormats.Gray8, null);
+            result.WritePixels(new Int32Rect(0, 0, result.PixelWidth, result.PixelHeight), resultPixels, result.PixelWidth * 4, 0);
+            return result;
         }
 
         public BitmapSource PowerAndRootFilter(double gamma)
@@ -207,17 +259,22 @@ namespace TP_PDI.Entities
 
         public BitmapSource MeanFilter(string mask)
         {
-            WriteableBitmap writeableBitmap = new WriteableBitmap(GrayScaleImage);
+            if (GrayScaleImage == null) throw new Exception("Imagem não foi carregada corretamente.");
 
-            int width = writeableBitmap.PixelWidth;
-            int height = writeableBitmap.PixelHeight;
+            
+            BitmapSource source = new FormatConvertedBitmap(GrayScaleImage, PixelFormats.Bgra32, null, 0);
+            int width = source.PixelWidth, height = source.PixelHeight;
+            int stride = width * 4; 
 
-            int[] originalPixels = new int[width * height];
-            int[] filteredPixels = new int[width * height];
-            writeableBitmap.CopyPixels(originalPixels, width * 4, 0);
+            byte[] originalPixels = new byte[height * stride];
+            byte[] filteredPixels = new byte[height * stride];
+            source.CopyPixels(originalPixels, stride, 0);
+
+            
             int kernelSize = GetValuesFromInput(mask)[0];
             int radius = kernelSize / 2;
 
+            
             for (int y = radius; y < height - radius; y++)
             {
                 for (int x = radius; x < width - radius; x++)
@@ -229,10 +286,10 @@ namespace TP_PDI.Entities
                     {
                         for (int kx = -radius; kx <= radius; kx++)
                         {
-                            int pixel = originalPixels[(y + ky) * width + (x + kx)];
-                            byte r = (byte)((pixel >> 16) & 0xff);
-                            byte g = (byte)((pixel >> 8) & 0xff);
-                            byte b = (byte)(pixel & 0xff);
+                            int index = ((y + ky) * stride) + ((x + kx) * 4);
+                            byte b = originalPixels[index];     
+                            byte g = originalPixels[index + 1]; 
+                            byte r = originalPixels[index + 2]; 
 
                             rSum += r;
                             gSum += g;
@@ -240,19 +297,28 @@ namespace TP_PDI.Entities
                             pixelCount++;
                         }
                     }
+
+                    
                     byte rAvg = (byte)(rSum / pixelCount);
                     byte gAvg = (byte)(gSum / pixelCount);
                     byte bAvg = (byte)(bSum / pixelCount);
 
-                    filteredPixels[y * width + x] = (255 << 24) | (rAvg << 16) | (gAvg << 8) | bAvg;
+                    
+                    int pixelIndex = (y * stride) + (x * 4);
+                    filteredPixels[pixelIndex] = bAvg;         
+                    filteredPixels[pixelIndex + 1] = gAvg;     
+                    filteredPixels[pixelIndex + 2] = rAvg;     
+                    filteredPixels[pixelIndex + 3] = 255;      
                 }
             }
 
-            WriteableBitmap result = new (width, height, writeableBitmap.DpiX, writeableBitmap.DpiY, PixelFormats.Pbgra32, null);
-            result.WritePixels(new Int32Rect(0, 0, width, height), filteredPixels, width * 4, 0);
+            
+            WriteableBitmap result = new WriteableBitmap(width, height, source.DpiX, source.DpiY, PixelFormats.Bgra32, null);
+            result.WritePixels(new Int32Rect(0, 0, width, height), filteredPixels, stride, 0);
 
             return result;
         }
+
 
         public BitmapSource MedianFilter(string mask)
         {
@@ -304,13 +370,15 @@ namespace TP_PDI.Entities
             int kernelSize = GetValuesFromInput(mask)[0];
             int radius = kernelSize / 2;
 
-            WriteableBitmap writeableBitmap = new WriteableBitmap(GrayScaleImage);
-            int width = writeableBitmap.PixelWidth;
-            int height = writeableBitmap.PixelHeight;
+            
+            BitmapSource source = new FormatConvertedBitmap(GrayScaleImage, PixelFormats.Bgra32, null, 0);
+            int width = source.PixelWidth;
+            int height = source.PixelHeight;
+            int stride = width * 4;
 
-            int[] originalPixels = new int[width * height];
-            int[] modePixels = new int[width * height];
-            writeableBitmap.CopyPixels(originalPixels, width * 4, 0);
+            byte[] originalPixels = new byte[height * stride];
+            byte[] modePixels = new byte[height * stride];
+            source.CopyPixels(originalPixels, stride, 0);
 
             for (int y = radius; y < height - radius; y++)
             {
@@ -324,10 +392,10 @@ namespace TP_PDI.Entities
                     {
                         for (int kx = -radius; kx <= radius; kx++)
                         {
-                            int pixel = originalPixels[(y + ky) * width + (x + kx)];
-                            byte r = (byte)((pixel >> 16) & 0xff);
-                            byte g = (byte)((pixel >> 8) & 0xff);
-                            byte b = (byte)(pixel & 0xff);
+                            int index = ((y + ky) * stride) + ((x + kx) * 4);
+                            byte r = originalPixels[index + 2]; // Red
+                            byte g = originalPixels[index + 1]; // Green
+                            byte b = originalPixels[index];     // Blue
 
                             if (rDict.ContainsKey(r)) rDict[r]++;
                             else rDict[r] = 1;
@@ -342,28 +410,34 @@ namespace TP_PDI.Entities
                     byte gMode = gDict.Aggregate((l, r) => l.Value > r.Value ? l : r).Key;
                     byte bMode = bDict.Aggregate((l, r) => l.Value > r.Value ? l : r).Key;
 
-                    modePixels[y * width + x] = (255 << 24) | (rMode << 16) | (gMode << 8) | bMode;
+                    int pixelIndex = (y * stride) + (x * 4);
+                    modePixels[pixelIndex] = bMode;
+                    modePixels[pixelIndex + 1] = gMode;
+                    modePixels[pixelIndex + 2] = rMode;
+                    modePixels[pixelIndex + 3] = 255; // Alpha
                 }
             }
 
-            WriteableBitmap result = new (width, height, writeableBitmap.DpiX, writeableBitmap.DpiY, PixelFormats.Pbgra32, null);
-            result.WritePixels(new Int32Rect(0, 0, width, height), modePixels, width * 4, 0);
+            WriteableBitmap result = new WriteableBitmap(width, height, source.DpiX, source.DpiY, PixelFormats.Bgra32, null);
+            result.WritePixels(new Int32Rect(0, 0, width, height), modePixels, stride, 0);
 
             return result;
         }
+
 
         public BitmapSource MinFilter(string mask)
         {
             int kernelSize = GetValuesFromInput(mask)[0];
             int radius = kernelSize / 2;
 
-            WriteableBitmap writeableBitmap = new WriteableBitmap(GrayScaleImage);
-            int width = writeableBitmap.PixelWidth;
-            int height = writeableBitmap.PixelHeight;
+            BitmapSource source = new FormatConvertedBitmap(GrayScaleImage, PixelFormats.Bgra32, null, 0);
+            int width = source.PixelWidth;
+            int height = source.PixelHeight;
+            int stride = width * 4;
 
-            int[] originalPixels = new int[width * height];
-            int[] minPixels = new int[width * height];
-            writeableBitmap.CopyPixels(originalPixels, width * 4, 0);
+            byte[] originalPixels = new byte[height * stride];
+            byte[] minPixels = new byte[height * stride];
+            source.CopyPixels(originalPixels, stride, 0);
 
             for (int y = radius; y < height - radius; y++)
             {
@@ -377,10 +451,10 @@ namespace TP_PDI.Entities
                     {
                         for (int kx = -radius; kx <= radius; kx++)
                         {
-                            int pixel = originalPixels[(y + ky) * width + (x + kx)];
-                            byte r = (byte)((pixel >> 16) & 0xff);
-                            byte g = (byte)((pixel >> 8) & 0xff);
-                            byte b = (byte)(pixel & 0xff);
+                            int index = ((y + ky) * stride) + ((x + kx) * 4);
+                            byte r = originalPixels[index + 2];
+                            byte g = originalPixels[index + 1];
+                            byte b = originalPixels[index];
 
                             rList.Add(r);
                             gList.Add(g);
@@ -392,28 +466,34 @@ namespace TP_PDI.Entities
                     byte gMin = gList.Min();
                     byte bMin = bList.Min();
 
-                    minPixels[y * width + x] = (255 << 24) | (rMin << 16) | (gMin << 8) | bMin;
+                    int pixelIndex = (y * stride) + (x * 4);
+                    minPixels[pixelIndex] = bMin;
+                    minPixels[pixelIndex + 1] = gMin;
+                    minPixels[pixelIndex + 2] = rMin;
+                    minPixels[pixelIndex + 3] = 255; // Alpha
                 }
             }
 
-            WriteableBitmap result = new (width, height, writeableBitmap.DpiX, writeableBitmap.DpiY, PixelFormats.Pbgra32, null);
-            result.WritePixels(new Int32Rect(0, 0, width, height), minPixels, width * 4, 0);
+            WriteableBitmap result = new WriteableBitmap(width, height, source.DpiX, source.DpiY, PixelFormats.Bgra32, null);
+            result.WritePixels(new Int32Rect(0, 0, width, height), minPixels, stride, 0);
 
             return result;
         }
+
 
         public BitmapSource MaxFilter(string mask)
         {
             int kernelSize = GetValuesFromInput(mask)[0];
             int radius = kernelSize / 2;
 
-            WriteableBitmap writeableBitmap = new WriteableBitmap(GrayScaleImage);
-            int width = writeableBitmap.PixelWidth;
-            int height = writeableBitmap.PixelHeight;
+            BitmapSource source = new FormatConvertedBitmap(GrayScaleImage, PixelFormats.Bgra32, null, 0);
+            int width = source.PixelWidth;
+            int height = source.PixelHeight;
+            int stride = width * 4;
 
-            int[] originalPixels = new int[width * height];
-            int[] maxPixels = new int[width * height];
-            writeableBitmap.CopyPixels(originalPixels, width * 4, 0);
+            byte[] originalPixels = new byte[height * stride];
+            byte[] maxPixels = new byte[height * stride];
+            source.CopyPixels(originalPixels, stride, 0);
 
             for (int y = radius; y < height - radius; y++)
             {
@@ -427,29 +507,35 @@ namespace TP_PDI.Entities
                     {
                         for (int kx = -radius; kx <= radius; kx++)
                         {
-                            int pixel = originalPixels[(y + ky) * width + (x + kx)];
-                            byte r = (byte)((pixel >> 16) & 0xff);
-                            byte g = (byte)((pixel >> 8) & 0xff);
-                            byte b = (byte)(pixel & 0xff);
+                            int index = ((y + ky) * stride) + ((x + kx) * 4);
+                            byte r = originalPixels[index + 2];
+                            byte g = originalPixels[index + 1];
+                            byte b = originalPixels[index];
 
                             rList.Add(r);
                             gList.Add(g);
                             bList.Add(b);
                         }
                     }
+
                     byte rMax = rList.Max();
                     byte gMax = gList.Max();
                     byte bMax = bList.Max();
 
-                    maxPixels[y * width + x] = (255 << 24) | (rMax << 16) | (gMax << 8) | bMax;
+                    int pixelIndex = (y * stride) + (x * 4);
+                    maxPixels[pixelIndex] = bMax;
+                    maxPixels[pixelIndex + 1] = gMax;
+                    maxPixels[pixelIndex + 2] = rMax;
+                    maxPixels[pixelIndex + 3] = 255; // Alpha
                 }
             }
 
-            WriteableBitmap result = new (width, height, writeableBitmap.DpiX, writeableBitmap.DpiY, PixelFormats.Pbgra32, null);
-            result.WritePixels(new Int32Rect(0, 0, width, height), maxPixels, width * 4, 0);
+            WriteableBitmap result = new WriteableBitmap(width, height, source.DpiX, source.DpiY, PixelFormats.Bgra32, null);
+            result.WritePixels(new Int32Rect(0, 0, width, height), maxPixels, stride, 0);
 
             return result;
         }
+
 
         public BitmapSource ExpansionFilter(string values)
         {
