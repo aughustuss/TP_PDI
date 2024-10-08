@@ -47,7 +47,12 @@ namespace TP_PDI.Enuns
         [Description("Noventa Graus")]
         NinetyDegrees,
         [Description("Cento e Oitenta Graus")]
-        OneHundredEightyDegrees
+        OneHundredEightyDegrees,
+        [Description("Ampliação da imagem com interpolação por replicação de pixels")]
+        EnlargementNearestNeighbor,
+        [Description("Ampliação da imagem com interpolação bilinear")]
+        EnlargementBilinear
+
     }
 }
 

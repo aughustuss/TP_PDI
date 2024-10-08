@@ -19,5 +19,8 @@ namespace TP_PDI.Interfaces
         public BitmapSource HighBoostFilter();
         public List<TransformedBitmap> DegreesFilter(int degrees);
         public TransformedBitmap MirroringFilter(EProcess mirroringProcess);
+        public BitmapSource NearestNeighbor(string newSizes);
+        public BitmapSource Bilinear(string newSizes);
+        public string PointOfProve(string positions);
     }
 }

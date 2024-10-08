@@ -20,7 +20,8 @@
                     Stretch="Uniform"
                     Height="220"
                     Width="220"
-                    x:Name="imagePicture"/>
+                    x:Name="imagePicture"
+                    MouseDown="ImageDisplay_MouseMove"/>
             </Border>
         </Grid>
 
@@ -84,6 +85,10 @@
             <Border BorderThickness="1" BorderBrush="Black">
                 <Canvas x:Name="histogramCanvas" Margin="0,162,707,0" />
             </Border>
+        </Grid>
+        <Grid x:Name="EnlargementInput" Visibility="Hidden" Height="50" Width="240" VerticalAlignment="Bottom" HorizontalAlignment="Left" Margin="10,0,0,254">
+            <TextBlock Text="Informe os valores para X e Y (Ex: 256x256)" />
+            <TextBox Height="30" VerticalAlignment="Bottom" x:Name="SizeValues"/>
         </Grid>
     </Grid>
 </Window>

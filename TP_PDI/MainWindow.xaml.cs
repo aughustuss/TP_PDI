@@ -24,6 +24,7 @@ namespace TP_PDI
         private readonly Dictionary<EProcess, Func<int, List<TransformedBitmap>>> _degreesProcesses;
         private readonly Dictionary<EProcess, Func<EProcess, TransformedBitmap>> _mirroringProcesses;
         private readonly Dictionary<EProcess, Func<string, BitmapSource>> _processWithMask;
+        private readonly Dictionary<EProcess, Func<string,BitmapSource>> _enlargementProcesses;
         private readonly ImageProcessor _image;
 
         public MainWindow()
@@ -70,6 +71,12 @@ namespace TP_PDI
                 { EProcess.Maximun, _image.MaxFilter },
                 { EProcess.Minimun, _image.MinFilter },
             };
+
+            _enlargementProcesses = new Dictionary<EProcess, Func<string, BitmapSource>>
+            {
+                {EProcess.EnlargementBilinear, _image.Bilinear},
+                {EProcess.EnlargementNearestNeighbor, _image.NearestNeighbor}
+            };
         }
 
         private void SubmitImage(object sender, RoutedEventArgs e)
@@ -97,12 +104,14 @@ namespace TP_PDI
                     resultImage.Source = mirroringProcess(selectedProcess);
                 else if (_processWithMask.TryGetValue(selectedProcess, out var processWithMask))
                     resultImage.Source = processWithMask(MaskValues.Text);
+                else if (_enlargementProcesses.TryGetValue(selectedProcess, out var enlargementProcesses))
+                    resultImage.Source = enlargementProcesses(SizeValues.Text);
                 else if (_degreesProcesses.TryGetValue(selectedProcess, out var degreesProcess))
                 {
                     int degrees = 0;
                     if (selectedProcess == EProcess.NinetyDegrees)
                         degrees = 90;
-                    else if(selectedProcess == EProcess.OneHundredEightyDegrees)
+                    else if (selectedProcess == EProcess.OneHundredEightyDegrees)
                         degrees = 180;
 
                     var transormedBitmaps = degreesProcess(degrees);
@@ -110,6 +119,7 @@ namespace TP_PDI
                     rotationImageResult.Source = transormedBitmaps[1];
                     RotatedImage.Visibility = Visibility.Visible;
                 }
+                
             }
         }
 
@@ -128,22 +138,33 @@ namespace TP_PDI
                         MaskInput.Visibility = Visibility.Visible;
                         ExpansionOrCompressionInput.Visibility = Visibility.Hidden;
                         DegreesInput.Visibility = Visibility.Hidden;
+                        EnlargementInput.Visibility = Visibility.Hidden;
                         break;
                     case EProcess.Expansion:
                     case EProcess.Compression:
                         MaskInput.Visibility = Visibility.Hidden;
                         ExpansionOrCompressionInput.Visibility = Visibility.Visible;
                         DegreesInput.Visibility = Visibility.Hidden;
+                        EnlargementInput.Visibility = Visibility.Hidden;
                         break;
                     case EProcess.NinetyDegrees:
                     case EProcess.OneHundredEightyDegrees:
                         MaskInput.Visibility = Visibility.Hidden;
                         ExpansionOrCompressionInput.Visibility= Visibility.Hidden;
                         DegreesInput.Visibility = Visibility.Visible;
+                        EnlargementInput.Visibility = Visibility.Hidden;
+                        break;
+                    case EProcess.EnlargementNearestNeighbor:
+                    case EProcess.EnlargementBilinear:
+                        MaskInput.Visibility = Visibility.Hidden;
+                        ExpansionOrCompressionInput.Visibility = Visibility.Hidden;
+                        DegreesInput.Visibility = Visibility.Hidden;
+                        EnlargementInput.Visibility = Visibility.Visible;
                         break;
                     default:
                         MaskInput.Visibility = Visibility.Hidden;
                         ExpansionOrCompressionInput.Visibility = Visibility.Hidden;
+                        EnlargementInput.Visibility = Visibility.Hidden;
                         break;
                 }
             }
@@ -195,6 +216,24 @@ namespace TP_PDI
 
                 histogramCanvas.Children.Add(bar);
             }
+        }
+        private void ImageDisplay_MouseMove(object sender, MouseButtonEventArgs e)
+        {
+            if (imagePicture.Source != null && _image.BitmapImage != null)
+            {
+                var position = e.GetPosition(imagePicture);
+                int x = (int)position.X;
+                int y = (int)position.Y;
+
+                if (x >= 0 && x < _image.BitmapImage.PixelWidth && y >= 0 && y < _image.BitmapImage.PixelHeight)
+                {
+                    string positions = $"{x},{y}";
+                    string colorInfo = _image.PointOfProve(positions);
+
+                    MessageBox.Show(colorInfo, "Informações do Pixel", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+            }
+
         }
 
     }
