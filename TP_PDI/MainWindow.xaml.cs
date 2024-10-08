@@ -33,6 +33,7 @@ namespace TP_PDI
         public MainWindow()
         {
             InitializeComponent();
+            WindowStartupLocation = WindowStartupLocation.CenterScreen;
 
             _image = new ImageProcessor();
 
