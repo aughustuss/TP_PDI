@@ -343,7 +343,7 @@ namespace TP_PDI.Entities
             }
 
             
-            WriteableBitmap result = new WriteableBitmap(width, height, source.DpiX, source.DpiY, PixelFormats.Bgra32, null);
+            WriteableBitmap result = new (width, height, source.DpiX, source.DpiY, PixelFormats.Bgra32, null);
             result.WritePixels(new Int32Rect(0, 0, width, height), filteredPixels, stride, 0);
 
             return result;
@@ -413,18 +413,18 @@ namespace TP_PDI.Entities
             {
                 for (int x = radius; x < width - radius; x++)
                 {
-                    Dictionary<byte, int> rDict = new Dictionary<byte, int>();
-                    Dictionary<byte, int> gDict = new Dictionary<byte, int>();
-                    Dictionary<byte, int> bDict = new Dictionary<byte, int>();
+                    Dictionary<byte, int> rDict = [];
+                    Dictionary<byte, int> gDict = [];
+                    Dictionary<byte, int> bDict = [];
 
                     for (int ky = -radius; ky <= radius; ky++)
                     {
                         for (int kx = -radius; kx <= radius; kx++)
                         {
                             int index = ((y + ky) * stride) + ((x + kx) * 4);
-                            byte r = originalPixels[index + 2]; // Red
-                            byte g = originalPixels[index + 1]; // Green
-                            byte b = originalPixels[index];     // Blue
+                            byte r = originalPixels[index + 2]; 
+                            byte g = originalPixels[index + 1]; 
+                            byte b = originalPixels[index]; 
 
                             if (rDict.ContainsKey(r)) rDict[r]++;
                             else rDict[r] = 1;
@@ -471,9 +471,9 @@ namespace TP_PDI.Entities
             {
                 for (int x = radius; x < width - radius; x++)
                 {
-                    List<byte> rList = new List<byte>();
-                    List<byte> gList = new List<byte>();
-                    List<byte> bList = new List<byte>();
+                    List<byte> rList = [];
+                    List<byte> gList = [];
+                    List<byte> bList = [];
 
                     for (int ky = -radius; ky <= radius; ky++)
                     {
@@ -498,11 +498,11 @@ namespace TP_PDI.Entities
                     minPixels[pixelIndex] = bMin;
                     minPixels[pixelIndex + 1] = gMin;
                     minPixels[pixelIndex + 2] = rMin;
-                    minPixels[pixelIndex + 3] = 255; // Alpha
+                    minPixels[pixelIndex + 3] = 255; 
                 }
             }
 
-            WriteableBitmap result = new WriteableBitmap(width, height, source.DpiX, source.DpiY, PixelFormats.Bgra32, null);
+            WriteableBitmap result = new(width, height, source.DpiX, source.DpiY, PixelFormats.Bgra32, null);
             result.WritePixels(new Int32Rect(0, 0, width, height), minPixels, stride, 0);
 
             return result;
@@ -526,9 +526,9 @@ namespace TP_PDI.Entities
             {
                 for (int x = radius; x < width - radius; x++)
                 {
-                    List<byte> rList = new List<byte>();
-                    List<byte> gList = new List<byte>();
-                    List<byte> bList = new List<byte>();
+                    List<byte> rList = [];
+                    List<byte> gList = [];
+                    List<byte> bList = [];
 
                     for (int ky = -radius; ky <= radius; ky++)
                     {
@@ -553,11 +553,11 @@ namespace TP_PDI.Entities
                     maxPixels[pixelIndex] = bMax;
                     maxPixels[pixelIndex + 1] = gMax;
                     maxPixels[pixelIndex + 2] = rMax;
-                    maxPixels[pixelIndex + 3] = 255; // Alpha
+                    maxPixels[pixelIndex + 3] = 255;
                 }
             }
 
-            WriteableBitmap result = new WriteableBitmap(width, height, source.DpiX, source.DpiY, PixelFormats.Bgra32, null);
+            WriteableBitmap result = new (width, height, source.DpiX, source.DpiY, PixelFormats.Bgra32, null);
             result.WritePixels(new Int32Rect(0, 0, width, height), maxPixels, stride, 0);
 
             return result;
