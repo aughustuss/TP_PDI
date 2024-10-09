@@ -10,8 +10,8 @@ namespace TP_PDI.Interfaces
         public BitmapSource LogarithmicFilter();
         public BitmapSource InverseLogarithmFilter();
         public BitmapSource LaplacianFilter();
-        public BitmapSource HighBoostFilter();
         public BitmapSource EqualizationFilter();
+        public BitmapSource HighBoostFilter(double a);
         public BitmapSource TwoImagesSum(double percentage);
         public BitmapSource PowerAndRootFilter(double gamma);
         public BitmapSource MeanFilter(string mask);

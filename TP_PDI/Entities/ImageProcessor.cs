@@ -90,20 +90,22 @@ namespace TP_PDI.Entities
             return BitmapSource.Create(width, height, 96, 96, PixelFormats.Gray8, null, newPixels, width);
         }
 
-        public BitmapSource HighBoostFilter()
+        public BitmapSource HighBoostFilter(double a)
         {
             if (GrayScaleImage == null) throw new InvalidOperationException("A imagem em níveis de cinza deve estar definida.");
 
-            WriteableBitmap writableBitmap = new (GrayScaleImage);
+            WriteableBitmap writableBitmap = new(GrayScaleImage);
             int width = writableBitmap.PixelWidth, height = writableBitmap.PixelHeight;
 
-            WriteableBitmap resultBitmap = new (width, height, writableBitmap.DpiX, writableBitmap.DpiY, PixelFormats.Gray8, null);
+            WriteableBitmap resultBitmap = new(width, height, writableBitmap.DpiX, writableBitmap.DpiY, PixelFormats.Gray8, null);
 
-            int k = 1, kernelSum = 16; ; 
-            int[,] lowPassKernel = {
-                { 1, 2, 1 },
-                { 2, 4, 2 },
-                { 1, 2, 1 }
+            int k = 1;
+            int kernelSum = (int)(a + 4); 
+            int[,] highBoostKernel = 
+            {
+                { 0, -1, 0 },
+                { -1, (int)a + 4, -1 },
+                { 0, -1, 0 }
             };
 
             byte[] pixels = new byte[width * height];
@@ -120,14 +122,18 @@ namespace TP_PDI.Entities
                     for (int ky = -1; ky <= 1; ky++)
                     {
                         for (int kx = -1; kx <= 1; kx++)
-                            lowFrequencyValue += pixels[(x + kx) + (y + ky) * width] * lowPassKernel[ky + 1, kx + 1];
+                        {
+                            lowFrequencyValue += pixels[(x + kx) + (y + ky) * width] * highBoostKernel[ky + 1, kx + 1];
+                        }
                     }
 
-                    int originalValue = pixels[x + y * width], highBoostValue = originalValue + k * (originalValue - lowFrequencyValue / kernelSum);
+                    int originalValue = pixels[x + y * width];
+                    int highBoostValue = originalValue + k * (originalValue - lowFrequencyValue / kernelSum);
 
                     resultPixels[x + y * width] = (byte)Math.Max(0, Math.Min(255, highBoostValue));
                 }
             }
+
             resultBitmap.WritePixels(new Int32Rect(0, 0, width, height), resultPixels, width, 0);
             return resultBitmap;
         }

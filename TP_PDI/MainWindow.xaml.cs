@@ -47,7 +47,6 @@ namespace TP_PDI
                 { EProcess.Logarithm, _image.LogarithmicFilter },
                 { EProcess.InverseLogarithm, _image.InverseLogarithmFilter },
                 { EProcess.Laplacian, _image.LaplacianFilter },
-                { EProcess.HighBoost, _image.HighBoostFilter },
                 { EProcess.Equalization, _image.EqualizationFilter },
             };
 
@@ -85,6 +84,7 @@ namespace TP_PDI
             _powerOrRootProcess = new Dictionary<EProcess, Func<double, BitmapSource>>
             {
                 { EProcess.PowerAndRoot, _image.PowerAndRootFilter },
+                { EProcess.HighBoost, _image.HighBoostFilter },
             };
 
             _twoImagesSumProcess = new Dictionary<EProcess, Func<double, BitmapSource>>
@@ -198,9 +198,10 @@ namespace TP_PDI
                         SubmitAuxiliarImageButton.IsEnabled = false;
                         break;
                     case EProcess.PowerAndRoot:
+                    case EProcess.HighBoost:
                         MaskInput.Visibility = Visibility.Hidden;
                         GammaInput.Visibility = Visibility.Visible;
-                        SubmitProcessButton.IsEnabled = GammaValue.Text.Length >= 3;
+                        SubmitProcessButton.IsEnabled = GammaValue.Text.Length >= 1;
                         AuxiliarImage.Visibility = Visibility.Hidden;
                         AuxiliarImageInput.Visibility = Visibility.Hidden;
                         SubmitAuxiliarImageButton.IsEnabled = false;
@@ -236,7 +237,7 @@ namespace TP_PDI
 
         private void HandleMaskOrGammaChange(object sender, RoutedEventArgs e)
         {
-            if (MaskValues.Text.Length > 2 || GammaValue.Text.Length > 2)
+            if (MaskValues.Text.Length > 2 || GammaValue.Text.Length >= 1)
                 SubmitProcessButton.IsEnabled = true;
             else
                 SubmitProcessButton.IsEnabled = false;
@@ -260,7 +261,7 @@ namespace TP_PDI
             for (int i = 0; i <= 10; i++) 
             {
                 double yValue = (histogramCanvas.ActualHeight / 10) * i;
-                TextBlock yLabel = new TextBlock
+                TextBlock yLabel = new()
                 {
                     Text = (255 / 10 * i).ToString(),
                     FontSize = 10,

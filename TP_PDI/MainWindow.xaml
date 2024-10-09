@@ -33,11 +33,11 @@
             </Grid>
 
             <Grid x:Name="MaskInput" Visibility="Hidden" Height="50" Width="270" VerticalAlignment="Top" Margin="0, 380, 0, 0" HorizontalAlignment="Left">
-                <TextBlock Text="Informe o tamanho da máscara (Ex: 5x5)" />
+                <TextBlock Text="Informe o tamanho da máscara (Ex: 5x5 / 512x512)" />
                 <TextBox  TextChanged="HandleMaskOrGammaChange"  Height="30" VerticalAlignment="Bottom" x:Name="MaskValues" />
             </Grid>
-            <Grid x:Name="GammaInput" Visibility="Hidden" Height="50" Width="270" VerticalAlignment="Top" Margin="0, 380, 0, 0" HorizontalAlignment="Left" >
-                <TextBlock Text="Insira o valor para gamma (apenas números)" />
+            <Grid x:Name="GammaInput" Visibility="Visible" Height="50" Width="270" VerticalAlignment="Top" Margin="0, 380, 0, 0" HorizontalAlignment="Left" >
+                <TextBlock Text="Insira apenas números (para Potência e Raiz ou HighBoost)" />
                 <TextBox TextChanged="HandleMaskOrGammaChange" Height="30" VerticalAlignment="Bottom" x:Name="GammaValue" />
             </Grid>
         </Grid>
